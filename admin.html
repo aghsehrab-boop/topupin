@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>SMM Top Up Shop – Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#000000;color:#fff;font-family:'Inter',sans-serif}
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-thumb{background:#FFD700;border-radius:3px}
+
+    /* SIDEBAR */
+    #sidebar{width:250px;background:#050505;border-right:1px solid rgba(255,215,0,0.2);height:100vh;position:fixed;left:0;top:0;z-index:200;transition:transform 0.3s;display:flex;flex-direction:column}
+    .sidebar-link{display:flex;align-items:center;gap:12px;padding:16px 20px;color:#888;font-size:0.85rem;font-weight:800;letter-spacing:0.05em;cursor:pointer;transition:all 0.2s;border-left:4px solid transparent;text-transform:uppercase}
+    .sidebar-link:hover{color:#FFD700;background:rgba(255,215,0,0.05)}
+    .sidebar-link.active{color:#FFD700;background:rgba(255,215,0,0.1);border-left-color:#FFD700}
+    .sidebar-icon{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0}
+
+    /* CONTENT */
+    #adminContent{margin-left:250px;min-height:100vh}
+    @media(max-width:768px){
+      #sidebar{transform:translateX(-100%)}
+      #sidebar.open{transform:translateX(0)}
+      #adminContent{margin-left:0}
+      #sidebarOverlay{display:block !important}
+    }
+    #sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:199}
+
+    /* PANELS */
+    .admin-panel{display:none}
+    .admin-panel.active{display:block}
+
+    /* STAT CARDS */
+    .stat-card{background:#0a0a0a;border-radius:18px;padding:24px;position:relative;overflow:hidden;border:1px solid rgba(255,215,0,0.2);box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+    .stat-val{font-family:'Anton',sans-serif;font-size:2.8rem;letter-spacing:0.04em;line-height:1;margin-bottom:8px}
+    .stat-label{font-size:0.8rem;color:#aaa;letter-spacing:0.1em;text-transform:uppercase;font-weight:800}
+
+    /* TABLE */
+    .data-table{width:100%;border-collapse:collapse;font-size:0.85rem}
+    .data-table th{background:#111;color:#FFD700;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;font-size:0.75rem;padding:16px;border-bottom:2px solid rgba(255,215,0,0.3);text-align:left}
+    .data-table td{padding:16px;border-bottom:1px solid rgba(255,255,255,0.05);vertical-align:middle;color:#ddd;font-weight:600}
+    .data-table tr:hover td{background:rgba(255,215,0,0.03)}
+
+    /* BADGES */
+    .badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:6px;font-size:0.7rem;font-weight:900;letter-spacing:0.05em;text-transform:uppercase}
+    .badge-pending{background:#ff8c00;color:#000}
+    .badge-verified{background:#22c55e;color:#000}
+    .badge-rejected{background:#ef4444;color:#fff}
+    .badge-interested{background:#555;color:#fff}
+    .badge-listing-approved{background:#0095f6;color:#fff}
+    .badge-listing-submitted{background:#a855f7;color:#fff}
+
+    /* INPUTS */
+    .inp{background:#111;border:1px solid rgba(255,215,0,0.3);border-radius:10px;color:#fff;padding:14px 16px;width:100%;font-family:'Inter',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.3s;font-weight:600}
+    .inp:focus{border-color:#FFD700;box-shadow:0 0 0 3px rgba(255,215,0,0.15)}
+    .inp::placeholder{color:#666}
+    select.inp option{background:#111}
+
+    /* BUTTONS */
+    .btn-gold{background:#FFD700;color:#000;font-family:'Anton',sans-serif;letter-spacing:0.08em;border:none;border-radius:8px;cursor:pointer;transition:all 0.3s;padding:10px 20px;font-size:0.9rem;text-transform:uppercase}
+    .btn-gold:hover{box-shadow:0 0 20px rgba(255,215,0,0.5);transform:translateY(-1px);background:#FFE900}
+    .btn-danger{background:#ef4444;color:#fff;border:none;border-radius:8px;cursor:pointer;padding:10px 20px;font-size:0.85rem;font-weight:800;transition:all 0.2s}
+    .btn-danger:hover{background:#ff2222;box-shadow:0 0 15px rgba(239,68,68,0.5)}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.3s}
+    .modal-overlay.open{opacity:1;pointer-events:all}
+    .modal-box{background:#0a0a0a;border:1px solid rgba(255,215,0,0.4);border-radius:24px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;transform:scale(0.9);transition:transform 0.3s;padding:32px;box-shadow:0 0 50px rgba(255,215,0,0.2)}
+    .modal-overlay.open .modal-box{transform:scale(1)}
+
+    /* SWITCH */
+    .switch{position:relative;display:inline-block;width:50px;height:26px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider-sw{position:absolute;cursor:pointer;inset:0;background:#222;border-radius:26px;transition:0.3s;border:1px solid #444}
+    .slider-sw:before{position:absolute;content:'';height:18px;width:18px;left:4px;bottom:3px;background:#888;border-radius:50%;transition:0.3s}
+    input:checked + .slider-sw{background:rgba(255,215,0,0.2);border-color:#FFD700}
+    input:checked + .slider-sw:before{transform:translateX(22px);background:#FFD700}
+
+    /* TOAST */
+    #adminToast{position:fixed;bottom:30px;right:30px;background:#FFD700;color:#000;padding:16px 24px;border-radius:12px;z-index:9999;font-size:0.95rem;font-weight:900;transform:translateY(80px);opacity:0;transition:all 0.4s;box-shadow:0 0 30px rgba(255,215,0,0.4)}
+    #adminToast.show{transform:translateY(0);opacity:1}
+  </style>
+</head>
+<body>
+
+<div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside id="sidebar">
+  <div style="padding:24px 20px;border-bottom:1px solid rgba(255,215,0,0.2);text-align:center">
+    <div style="font-family:'Anton',sans-serif;font-size:1.4rem;color:#FFD700;letter-spacing:0.05em;text-shadow:0 0 10px rgba(255,215,0,0.5)">GOIS ADMIN</div>
+    <p style="font-size:0.75rem;color:#888;margin-top:4px;letter-spacing:0.1em;font-weight:800">DASHBOARD SYSTEM</p>
+  </div>
+
+  <nav style="flex:1;padding:20px 0;overflow-y:auto;">
+    <div class="sidebar-link active" onclick="showPanel('dashboard')" data-panel="dashboard">
+      <span class="sidebar-icon">📊</span> Dashboard
+    </div>
+    <div class="sidebar-link" onclick="showPanel('ids')" data-panel="ids">
+      <span class="sidebar-icon">🎮</span> ID Management
+    </div>
+    <div class="sidebar-link" onclick="showPanel('leads')" data-panel="leads">
+      <span class="sidebar-icon">📋</span> Leads &amp; Orders
+    </div>
+    <div class="sidebar-link" onclick="showPanel('banners')" data-panel="banners">
+      <span class="sidebar-icon">🖼</span> Hero Slider Banners
+    </div>
+    <div class="sidebar-link" onclick="showPanel('upi')" data-panel="upi">
+      <span class="sidebar-icon">⚙️</span> Settings & UPI
+    </div>
+  </nav>
+
+  <div style="padding:24px;border-top:1px solid rgba(255,215,0,0.2);">
+    <a href="index.html" style="display:block;text-align:center;padding:14px;background:#FFD700;border-radius:10px;color:#000;font-size:0.85rem;font-weight:900;letter-spacing:0.1em;text-decoration:none;box-shadow:0 0 15px rgba(255,215,0,0.4)">
+      ← VIEW STORE
+    </a>
+  </div>
+</aside>
+
+<!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+<div id="adminContent">
+  <!-- TOPBAR -->
+  <div style="background:#050505;border-bottom:1px solid rgba(255,215,0,0.2);padding:18px 30px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;">
+    <div class="flex items-center gap-4">
+      <button class="md:hidden p-2" onclick="toggleSidebar()" style="background:transparent;border:none;cursor:pointer;">
+        <div style="width:26px;height:3px;background:#FFD700;margin-bottom:6px;border-radius:2px"></div>
+        <div style="width:26px;height:3px;background:#FFD700;margin-bottom:6px;border-radius:2px"></div>
+        <div style="width:26px;height:3px;background:#FFD700;border-radius:2px"></div>
+      </button>
+      <div>
+        <h1 id="panelTitle" style="font-family:'Anton',sans-serif;font-size:1.6rem;letter-spacing:0.05em;color:#fff;">DASHBOARD</h1>
+        <p style="font-size:0.8rem;color:#888;font-weight:700" id="panelSubtitle">Real-time overview</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:30px;">
+
+    <!-- ── PANEL: DASHBOARD ── -->
+    <div id="panel-dashboard" class="admin-panel active">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="stat-card">
+          <div class="stat-val text-white" id="statLeads">0</div>
+          <div class="stat-label">Total Leads</div>
+        </div>
+        <div class="stat-card" style="border-color:#ff8c00">
+          <div class="stat-val" style="color:#ff8c00;" id="statPending">0</div>
+          <div class="stat-label" style="color:#ff8c00">Pending Orders</div>
+        </div>
+        <div class="stat-card" style="border-color:#22c55e">
+          <div class="stat-val" style="color:#22c55e;" id="statRecentPay">0</div>
+          <div class="stat-label" style="color:#22c55e">Verified Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val text-gold" style="color:#FFD700" id="statIDs">0</div>
+          <div class="stat-label">Active IDs</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="stat-card" style="padding:0">
+          <div style="padding:20px 24px;border-bottom:1px solid rgba(255,215,0,0.1)">
+            <h3 style="font-family:'Anton',sans-serif;letter-spacing:0.08em;font-size:1.1rem;color:#FFD700;">RECENT LEADS</h3>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead><tr><th>WhatsApp</th><th>ID Name</th><th>Status</th></tr></thead>
+              <tbody id="dashLeads"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="stat-card" style="padding:0">
+          <div style="padding:20px 24px;border-bottom:1px solid rgba(255,215,0,0.1)">
+            <h3 style="font-family:'Anton',sans-serif;letter-spacing:0.08em;font-size:1.1rem;color:#FFD700;">PENDING PAYMENTS (UTR)</h3>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead><tr><th>WhatsApp</th><th>UTR</th><th>Actions</th></tr></thead>
+              <tbody id="dashUtr"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL: ID MANAGEMENT ── -->
+    <div id="panel-ids" class="admin-panel">
+      <div class="flex items-center justify-between mb-8">
+        <input class="inp" style="max-width:320px;" placeholder="🔍 Search IDs by name..." oninput="renderIds(this.value)"/>
+        <button class="btn-gold" onclick="openAddIdModal()">+ ADD NEW ID</button>
+      </div>
+      <div class="stat-card" style="padding:0;overflow:hidden">
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr><th>Photo</th><th>Name</th><th>Price</th><th>Level</th><th>Type</th><th>Published</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="idsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL: LEADS & ORDERS ── -->
+    <div id="panel-leads" class="admin-panel">
+      <div class="stat-card" style="padding:0;overflow:hidden">
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead>
+              <tr><th>WhatsApp</th><th>Interested ID</th><th>Price</th><th>UTR</th><th>Status</th><th>Timestamp</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="leadsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANEL: BANNERS ── -->
+    <div id="panel-banners" class="admin-panel">
+      <div class="flex justify-end mb-8">
+        <button class="btn-gold" onclick="openAddBannerModal()">+ ADD NEW BANNER</button>
+      </div>
+      <div id="bannersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+    </div>
+
+    <!-- ── PANEL: UPI SETTINGS ── -->
+    <div id="panel-upi" class="admin-panel">
+      <div class="stat-card" style="max-width:500px;">
+        <h3 style="font-family:'Anton',sans-serif;letter-spacing:0.08em;font-size:1.3rem;margin-bottom:24px;color:#FFD700;">⚙️ UPI SETTINGS</h3>
+        <div class="space-y-5">
+          <div>
+            <label style="display:block;font-size:0.8rem;color:#888;margin-bottom:8px;font-weight:900;text-transform:uppercase">Store UPI Address *</label>
+            <input type="text" id="upiInput" class="inp" placeholder="e.g. sehrab88@fam"/>
+            <p style="font-size:0.75rem;color:#666;margin-top:8px">This UPI ID is used for generating dynamic QR codes and deep links (PhonePe, GPay, Paytm) on the payment gateway.</p>
+          </div>
+          <button class="btn-gold w-full py-4 mt-4" style="font-size:1rem" onclick="saveUpi()">SAVE SETTINGS</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: ADD/EDIT ID ═══════════════ -->
+<div class="modal-overlay" id="idModal" onclick="closeModalOut(event,'idModal')">
+  <div class="modal-box">
+    <h3 style="font-family:'Anton',sans-serif;font-size:1.6rem;letter-spacing:0.06em;color:#FFD700;margin-bottom:24px" id="idModalTitle">ADD ID</h3>
+    <form id="idForm" onsubmit="saveId(event)">
+      <input type="hidden" id="idKey"/>
+      <div class="space-y-5">
+        <div>
+          <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">ID Name *</label>
+          <input type="text" id="ifName" class="inp" placeholder="DRAGON KING PRO" required/>
+        </div>
+        <div class="grid grid-cols-2 gap-5">
+          <div>
+            <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Price (₹) *</label>
+            <input type="number" id="ifPrice" class="inp" placeholder="4999" required/>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Level *</label>
+            <input type="number" id="ifLevel" class="inp" placeholder="82" required/>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-5">
+          <div>
+            <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Account Type *</label>
+            <select id="ifType" class="inp" required>
+              <option value="Google">Google</option>
+              <option value="Facebook">Facebook</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Publish Status</label>
+            <select id="ifPublished" class="inp">
+              <option value="1">Published</option>
+              <option value="0">Hidden / Draft</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Upload Images (Base64 directly)</label>
+          <input type="file" id="ifFile" class="inp" accept="image/*"/>
+          <div id="imagePreviewContainer" class="flex gap-3 flex-wrap mt-3"></div>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Description</label>
+          <textarea id="ifDesc" class="inp" rows="4" placeholder="Skins, Rank, Bundles, etc..."></textarea>
+        </div>
+        <div class="flex justify-end gap-4 pt-4">
+          <button type="button" class="btn-danger px-6" onclick="closeIdModal()">CANCEL</button>
+          <button type="submit" class="btn-gold px-8">SAVE ID</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: BANNER (IMAGE & VIDEO + LINK) ═══════════════ -->
+<div class="modal-overlay" id="bannerModal" onclick="closeModalOut(event,'bannerModal')">
+  <div class="modal-box">
+    <h3 style="font-family:'Anton',sans-serif;font-size:1.6rem;letter-spacing:0.06em;color:#FFD700;margin-bottom:24px">ADD HERO BANNER</h3>
+    <form id="bannerForm" onsubmit="saveBanner(event)">
+      <div class="space-y-5">
+        <div>
+          <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Banner Title</label>
+          <input type="text" id="bfTitle" class="inp" placeholder="MEGA SALE TODAY"/>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Subtitle</label>
+          <input type="text" id="bfSub" class="inp" placeholder="Up to 60% OFF"/>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Target Link (Optional)</label>
+          <input type="text" id="bfLink" class="inp" placeholder="https://..."/>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Upload Image or Video (Base64) *</label>
+          <input type="file" id="bfFile" class="inp" accept="image/*,video/*" required/>
+          <div id="bannerPreview" class="mt-4 hidden">
+            <span id="previewTag" class="text-sm text-gold font-bold block mb-2"></span>
+            <img id="bfPreviewImg" src="" style="width:100%;height:150px;object-fit:cover;border-radius:12px;border:1px solid #FFD700;display:none"/>
+            <video id="bfPreviewVideo" style="width:100%;height:150px;object-fit:cover;border-radius:12px;border:1px solid #FFD700;display:none" autoplay loop muted></video>
+          </div>
+        </div>
+        <div class="flex justify-end gap-4 pt-4">
+          <button type="button" class="btn-danger px-6" onclick="closeBannerModal()">CANCEL</button>
+          <button type="submit" class="btn-gold px-8">SAVE BANNER</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL: DELIVER ACCOUNT ═══════════════ -->
+<div class="modal-overlay" id="deliverModal" onclick="closeModalOut(event,'deliverModal')">
+  <div class="modal-box" style="max-width:460px">
+    <h3 style="font-family:'Anton',sans-serif;font-size:1.6rem;letter-spacing:0.06em;color:#FFD700;margin-bottom:16px">VERIFY UTR &amp; DELIVER</h3>
+    <p style="color:#aaa;font-size:0.9rem;margin-bottom:24px">Mark payment as verified and input account details to fulfill order.</p>
+    <input type="hidden" id="delivLeadId"/>
+    <div class="space-y-5">
+      <div>
+        <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Account Email *</label>
+        <input type="text" id="delivEmail" class="inp" placeholder="buyeraccount@gmail.com" required/>
+      </div>
+      <div>
+        <label style="display:block;font-size:0.75rem;color:#888;margin-bottom:6px;font-weight:800;text-transform:uppercase">Account Password *</label>
+        <input type="text" id="delivPass" class="inp" placeholder="password123" required/>
+      </div>
+      <div class="flex justify-end gap-4 pt-4">
+        <button type="button" class="btn-danger px-6" onclick="closeDeliverModal()">CANCEL</button>
+        <button type="button" class="btn-gold px-8" onclick="saveDelivery()">MARK DELIVERED</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="adminToast"></div>
+
+<script>
+const DB={
+  cache:{},
+  async init(){
+    // Try to load from server first
+    try {
+      const res = await fetch('/api/data');
+      if (res.ok) {
+        const serverData = await res.json();
+        const keys = ['settings','ids','banners','leads'];
+        keys.forEach(k => {
+          if (serverData[k] !== null && serverData[k] !== undefined) {
+            DB.cache[k] = serverData[k];
+            try { localStorage.setItem('gois_' + k, JSON.stringify(serverData[k])); } catch(e) {}
+          } else {
+            DB.cache[k] = JSON.parse(localStorage.getItem('gois_' + k)) || null;
+          }
+        });
+        return;
+      }
+    } catch(err) {
+      console.log("Server fetch failed, falling back to local storage:", err);
+    }
+
+    return new Promise(res=>{
+      const req=indexedDB.open('GarenaStoreDB',1);
+      req.onupgradeneeded=e=>e.target.result.createObjectStore('store');
+      req.onsuccess=e=>{
+        const db=e.target.result;
+        const tx=db.transaction('store','readonly');
+        const store=tx.objectStore('store');
+        const keys=['settings','ids','banners','leads'];
+        let count=0;
+        keys.forEach(k=>{
+          const r=store.get(k);
+          r.onsuccess=()=>{
+            if (k === 'leads' || k === 'settings') {
+              DB.cache[k]=JSON.parse(localStorage.getItem('gois_'+k))||r.result||null;
+            } else {
+              DB.cache[k]=r.result||JSON.parse(localStorage.getItem('gois_'+k))||null;
+            }
+            count++;
+            if(count===keys.length)res();
+          };
+          r.onerror=()=>{
+            DB.cache[k]=JSON.parse(localStorage.getItem('gois_'+k))||null;
+            count++;
+            if(count===keys.length)res();
+          };
+        });
+      };
+      req.onerror=()=>{
+        ['settings','ids','banners','leads'].forEach(k=>{
+          DB.cache[k]=JSON.parse(localStorage.getItem('gois_'+k))||null;
+        });
+        res();
+      };
+    });
+  },
+  get(k){return DB.cache[k]||null},
+  set(k,v){
+    DB.cache[k]=v;
+    try{localStorage.setItem('gois_'+k,JSON.stringify(v))}catch(e){}
+    
+    // Save to server
+    fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(DB.cache)
+    }).catch(err => console.log("Failed to sync to server:", err));
+
+    const req=indexedDB.open('GarenaStoreDB',1);
+    req.onsuccess=e=>{
+      try{
+        const db=e.target.result;
+        const tx=db.transaction('store','readwrite');
+        tx.objectStore('store').put(v,k);
+      }catch(err){}
+    };
+  }
+};
+const getSettings=()=>DB.get('settings')||{upiId:'sehrab@fam'};
+const getIds=()=>DB.get('ids')||defaultIds();
+const getBanners=()=>DB.get('banners')||defaultBanners();
+const getLeads=()=>DB.get('leads')||[];
+
+function defaultBanners(){
+  return[{id:1,url:'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1400&h=500&fit=crop&sat=-20',title:'🔥 PREMIUM FF IDs',sub:'Legendary Skins & High Rank Accounts',active:true,isVideo:false}];
+}
+
+function defaultIds(){
+  const ph=['https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=600&h=400&fit=crop','https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=600&h=400&fit=crop'];
+  return[
+    {id:'ff001',name:'DRAGON KING PRO',price:4999,level:82,type:'Google',photos:[ph[0]],desc:'🔥 50+ Legendary skins · Cobra bundle · Season 20 Gold Rank',published:true},
+    {id:'ff002',name:'SHADOW BEAST',price:2999,level:67,type:'Facebook',photos:[ph[1]],desc:'⚡ 30+ skins · Platinum rank · Elite pass × 6',published:true}
+  ];
+}
+
+const titles={
+  dashboard:['DASHBOARD','Overview & stats analytics'],
+  ids:['ID MANAGEMENT','Create & publish account listings'],
+  leads:['LEADS & ORDERS','Complete customer tracking table'],
+  banners:['HERO BANNERS','Promotional video & image setup'],
+  upi:['UPI SETTINGS','Core gateway payment address']
+};
+
+function showPanel(name){
+  document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.querySelector(`[data-panel="${name}"]`)?.classList.add('active');
+
+  const t=titles[name]||[name.toUpperCase(),''];
+  document.getElementById('panelTitle').textContent=t[0];
+  document.getElementById('panelSubtitle').textContent=t[1];
+
+  if(name==='dashboard')loadDash();
+  else if(name==='ids')renderIds();
+  else if(name==='leads')renderLeads();
+  else if(name==='banners')renderBanners();
+  else if(name==='upi')loadUpi();
+  closeSidebar();
+}
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open')}
+function closeModalOut(e,id){if(e.target===document.getElementById(id))window['close'+id.charAt(0).toUpperCase()+id.slice(1)+'Modal']()}
+
+// ════════════ DASHBOARD ════════════
+function loadDash(){
+  const leads=getLeads();
+  const pend=leads.filter(l=>l.status==='payment_pending').length;
+  const ver=leads.filter(l=>l.status==='verified').length;
+  const idsCount=getIds().filter(i=>i.published).length;
+
+  document.getElementById('statLeads').textContent=leads.length;
+  document.getElementById('statPending').textContent=pend;
+  document.getElementById('statRecentPay').textContent=ver;
+  document.getElementById('statIDs').textContent=idsCount;
+
+  // Recent leads
+  const tbodyLeads=document.getElementById('dashLeads');
+  const sortedLeads=[...leads].reverse().slice(0,5);
+  tbodyLeads.innerHTML=sortedLeads.length?sortedLeads.map(l=>`<tr>
+    <td class="font-bold text-white">${l.wa}</td>
+    <td>${l.idName||'—'}</td>
+    <td><span class="badge ${badgeClass(l.status)}">${l.status.replace('_',' ')}</span></td>
+  </tr>`).join(''):'<tr><td colspan="3" class="text-center py-6 text-gray-600">No leads captured yet.</td></tr>';
+
+  // Pending UTRs
+  const tbodyUtr=document.getElementById('dashUtr');
+  const utrs=leads.filter(l=>l.utr).reverse().slice(0,5);
+  tbodyUtr.innerHTML=utrs.length?utrs.map(l=>`<tr>
+    <td class="font-bold text-white">${l.wa}</td>
+    <td class="font-mono text-gold" style="color:#FFD700">${l.utr}</td>
+    <td>
+      ${l.status!=='verified'?`<button class="btn-gold" style="padding:6px 14px;font-size:0.75rem" onclick="openDeliverModal('${l.id}')">Verify</button>`:'<span style="color:#22c55e;font-weight:800">✓ Verified</span>'}
+    </td>
+  </tr>`).join(''):'<tr><td colspan="3" class="text-center py-6 text-gray-600">No transaction receipts pending.</td></tr>';
+}
+
+const badgeClass=s=>{
+  if(s==='verified')return 'badge-verified';
+  if(s==='payment_pending')return 'badge-pending';
+  if(s==='rejected')return 'badge-rejected';
+  if(s==='listing_approved')return 'badge-listing-approved';
+  if(s==='listing_details_submitted')return 'badge-listing-submitted';
+  return 'badge-interested';
+};
+
+// ════════════ ID MANAGEMENT ════════════
+let tempImgArr=[];
+document.getElementById('ifFile').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      tempImgArr=[ev.target.result];
+      const prevCont=document.getElementById('imagePreviewContainer');
+      prevCont.innerHTML=`<img src="${ev.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:12px;border:2px solid #FFD700"/>`;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+function renderIds(query=''){
+  const ids=getIds();
+  const tbody=document.getElementById('idsTable');
+  const filtered=query?ids.filter(x=>x.name.toLowerCase().includes(query.toLowerCase())):ids;
+  tbody.innerHTML=filtered.length?filtered.map(x=>`<tr>
+    <td><img style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #333" src="${x.photos?.[0]||''}" onerror="this.src='https://via.placeholder.com/64/111/FFD700?text=FF'"/></td>
+    <td class="font-bold text-white" style="font-size:1.1rem">${x.name}</td>
+    <td class="text-gold font-bold" style="color:#FFD700;font-size:1.1rem">₹${Number(x.price).toLocaleString('en-IN')}</td>
+    <td><span style="background:#222;padding:4px 10px;border-radius:6px;font-weight:800;color:#FFD700">Lvl ${x.level}</span></td>
+    <td>${x.type}</td>
+    <td>
+      <label class="switch">
+        <input type="checkbox" ${x.published?'checked':''} onchange="togglePublish('${x.id}',this.checked)"/>
+        <span class="slider-sw"></span>
+      </label>
+    </td>
+    <td>
+      <div class="flex gap-2">
+        <button class="btn-gold" style="padding:8px 14px;font-size:0.75rem" onclick="openEditIdModal('${x.id}')">EDIT</button>
+        <button class="btn-danger" style="padding:8px 14px;font-size:0.75rem" onclick="deleteId('${x.id}')">DEL</button>
+      </div>
+    </td>
+  </tr>`).join(''):'<tr><td colspan="7" class="text-center py-10 text-gray-600">No account listings match query.</td></tr>';
+}
+
+function togglePublish(id,checked){
+  const list=getIds();
+  const item=list.find(x=>x.id===id);
+  if(item){
+    item.published=checked;
+    DB.set('ids',list);
+    showToast(checked?'✓ Listing Live':'📴 Listing Hidden');
+  }
+}
+
+function deleteId(id){
+  if(!confirm('Permanently delete this account listing?'))return;
+  const list=getIds().filter(x=>x.id!==id);
+  DB.set('ids',list);
+  renderIds();
+  showToast('🗑 Listing deleted');
+}
+
+function openAddIdModal(){
+  document.getElementById('idModalTitle').textContent='ADD NEW ACCOUNT';
+  document.getElementById('idKey').value='';
+  document.getElementById('ifName').value='';
+  document.getElementById('ifPrice').value='';
+  document.getElementById('ifLevel').value='';
+  document.getElementById('ifType').value='Google';
+  document.getElementById('ifPublished').value='1';
+  document.getElementById('ifDesc').value='';
+  document.getElementById('ifFile').value='';
+  document.getElementById('imagePreviewContainer').innerHTML='';
+  tempImgArr=[];
+  document.getElementById('idModal').classList.add('open');
+}
+
+function openEditIdModal(id){
+  const item=getIds().find(x=>x.id===id);
+  if(!item)return;
+  document.getElementById('idModalTitle').textContent='EDIT ACCOUNT';
+  document.getElementById('idKey').value=id;
+  document.getElementById('ifName').value=item.name;
+  document.getElementById('ifPrice').value=item.price;
+  document.getElementById('ifLevel').value=item.level;
+  document.getElementById('ifType').value=item.type;
+  document.getElementById('ifPublished').value=item.published?'1':'0';
+  document.getElementById('ifDesc').value=item.desc||'';
+  document.getElementById('ifFile').value='';
+  tempImgArr=item.photos||[];
+  const container=document.getElementById('imagePreviewContainer');
+  container.innerHTML=tempImgArr.map(p=>`<img src="${p}" style="width:100px;height:100px;object-fit:cover;border-radius:12px;border:2px solid #FFD700"/>`).join('');
+  document.getElementById('idModal').classList.add('open');
+}
+
+function saveId(e){
+  e.preventDefault();
+  const list=getIds();
+  const key=document.getElementById('idKey').value;
+  const entry={
+    id:key||'ff_'+Date.now(),
+    name:document.getElementById('ifName').value.trim().toUpperCase(),
+    price:parseInt(document.getElementById('ifPrice').value),
+    level:parseInt(document.getElementById('ifLevel').value),
+    type:document.getElementById('ifType').value,
+    published:document.getElementById('ifPublished').value==='1',
+    photos:tempImgArr,
+    desc:document.getElementById('ifDesc').value.trim()
+  };
+  if(key){
+    const idx=list.findIndex(x=>x.id===key);
+    if(idx>=0)list[idx]=entry;
+  }else list.push(entry);
+  DB.set('ids',list);
+  closeIdModal();
+  renderIds();
+  showToast('✅ Account saved successfully');
+}
+function closeIdModal(){document.getElementById('idModal').classList.remove('open')}
+
+// ════════════ LEADS & ORDERS ════════════
+function renderLeads(){
+  const list=[...getLeads()].reverse();
+  const tbody=document.getElementById('leadsTable');
+  tbody.innerHTML=list.length?list.map(l=>`<tr>
+    <td class="font-bold text-white"><a href="https://wa.me/${l.wa}" target="_blank" style="color:#FFD700;text-decoration:underline">${l.wa}</a></td>
+    <td style="font-size:1rem">${l.idName||'—'} ${l.isListingFee?'<span style="background:#0095f6;color:#fff;font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:900;margin-left:5px">SELLER</span>':''}</td>
+    <td style="color:#FF3333;font-weight:900">₹${Number(l.price||0).toLocaleString('en-IN')}</td>
+    <td class="font-mono" style="color:#FFD700">${l.utr||'—'}</td>
+    <td><span class="badge ${badgeClass(l.status)}">${l.status.replace(/_/g,' ')}</span></td>
+    <td style="color:#777;font-size:0.8rem">${l.timestamp?new Date(l.timestamp).toLocaleString('en-IN'):'—'}</td>
+    <td>
+      <div class="flex gap-2 flex-wrap">
+        ${l.isListingFee && (l.status==='payment_pending'||l.status==='verified') && l.status!=='listing_approved'?`<button class="btn-gold" style="padding:6px 12px;font-size:0.7rem;background:#0095f6;color:#fff;border-radius:6px" onclick="approveListing('${l.id}')">✓ APPROVE</button>`:''}
+        ${!l.isListingFee && l.status==='payment_pending' && l.utr?`<button class="btn-gold" style="padding:6px 14px;font-size:0.75rem" onclick="openDeliverModal('${l.id}')">Verify</button>`:''}
+        ${l.status==='listing_approved'?`<span style="color:#0095f6;font-weight:900;font-size:0.75rem">✓ APPROVED</span>`:''}
+        ${l.status==='listing_details_submitted'?`<button class="btn-gold" style="padding:6px 12px;font-size:0.7rem" onclick="viewListingDetails('${l.id}')">👁 DETAILS</button>`:''}
+        <button class="btn-danger" style="padding:6px 10px;font-size:0.75rem" onclick="deleteLead('${l.id}')">DEL</button>
+      </div>
+    </td>
+  </tr>`).join(''):'<tr><td colspan="7" class="text-center py-10 text-gray-600">No leads captured.</td></tr>';
+}
+
+function deleteLead(id){
+  if(!confirm('Delete this lead entry?'))return;
+  const list=getLeads().filter(x=>x.id!==id);
+  DB.set('leads',list);
+  renderLeads();
+  showToast('🗑 Lead deleted');
+}
+
+// ════════════ LISTING APPROVALS ════════════
+function approveListing(id){
+  if(!confirm('Approve this seller? They will be able to list their Free Fire ID.'))return;
+  const list=getLeads();
+  const lead=list.find(x=>x.id===id);
+  if(lead){
+    lead.status='listing_approved';
+    lead.approvedAt=new Date().toISOString();
+    DB.set('leads',list);
+    showToast('✅ Seller approved! They can now list their ID.');
+    renderLeads();
+  }
+}
+
+function viewListingDetails(id){
+  const lead=getLeads().find(x=>x.id===id);
+  if(!lead||!lead.listingDetails){alert('No details submitted yet.');return;}
+  const d=lead.listingDetails;
+  alert(`📋 LISTING DETAILS\n\nSeller: ${lead.name||lead.wa}\nWhatsApp: ${lead.wa}\n\nAccount Type: ${d.type||'—'}\nAsking Price: ₹${d.askingPrice||'—'}\nLevel: ${d.level||'—'}\nDescription: ${d.desc||'—'}`);
+}
+
+// ════════════ DELIVER MODAL ════════════
+function openDeliverModal(id){
+  document.getElementById('delivLeadId').value=id;
+  document.getElementById('delivEmail').value='';
+  document.getElementById('delivPass').value='';
+  document.getElementById('deliverModal').classList.add('open');
+}
+function closeDeliverModal(){document.getElementById('deliverModal').classList.remove('open')}
+function saveDelivery(){
+  const id=document.getElementById('delivLeadId').value;
+  const email=document.getElementById('delivEmail').value.trim();
+  const pass=document.getElementById('delivPass').value.trim();
+  if(!email||!pass){alert('Please fill email and password!');return}
+
+  const list=getLeads();
+  const lead=list.find(x=>x.id===id);
+  if(lead){
+    lead.status='verified';
+    lead.deliveredCredentials=`Email: ${email} | Pass: ${pass}`;
+    lead.verifiedAt=new Date().toISOString();
+    DB.set('leads',list);
+    showToast('✅ Order marked VERIFIED. Details set for delivery.');
+  }
+  closeDeliverModal();
+  renderLeads();
+}
+
+// ════════════ BANNER MANAGEMENT ════════════
+let tempBannerBase64=null;
+let tempBannerIsVideo=false;
+
+document.getElementById('bfFile').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(file){
+    const limit=100*1024*1024; // 100 MB
+    if(file.size>limit){
+      alert('❌ File size exceeds the 100 MB limit!');
+      e.target.value='';
+      return;
+    }
+    const reader=new FileReader();
+    tempBannerIsVideo=file.type.startsWith('video/');
+    reader.onload=ev=>{
+      tempBannerBase64=ev.target.result;
+      const previewTag=document.getElementById('previewTag');
+      const img=document.getElementById('bfPreviewImg');
+      const vid=document.getElementById('bfPreviewVideo');
+
+      previewTag.textContent=tempBannerIsVideo?'🎥 Video Preview (Base64)':'🖼 Image Preview (Base64)';
+      document.getElementById('bannerPreview').classList.remove('hidden');
+
+      if(tempBannerIsVideo){
+        img.style.display='none';
+        vid.src=tempBannerBase64;
+        vid.style.display='block';
+      }else{
+        vid.style.display='none';
+        img.src=tempBannerBase64;
+        img.style.display='block';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+function renderBanners(){
+  const bans=getBanners();
+  const grid=document.getElementById('bannersGrid');
+  grid.innerHTML=bans.length?bans.map(b=>`<div class="stat-card" style="padding:16px">
+    ${b.isVideo?
+      `<video class="w-full object-cover rounded-xl border border-gray-800 mb-4" style="aspect-ratio:21/9" autoplay loop muted><source src="${b.url}"></video>`:
+      `<img class="w-full object-cover rounded-xl border border-gray-800 mb-4" style="aspect-ratio:21/9" src="${b.url}"/>`
+    }
+    <div style="font-family:'Anton',sans-serif;font-size:1.3rem;color:#FFD700;margin-bottom:6px">${b.title||'No Title'}</div>
+    <div style="color:#aaa;font-size:0.85rem;margin-bottom:12px">${b.sub||'No Subtitle'}</div>
+    ${b.link?`<div style="color:#22c55e;font-size:0.75rem;margin-bottom:12px">Link: ${b.link}</div>`:''}
+    <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-800">
+      <label class="switch">
+        <input type="checkbox" ${b.active?'checked':''} onchange="toggleBannerStatus(${b.id},this.checked)"/>
+        <span class="slider-sw"></span>
+      </label>
+      <button class="btn-danger" style="padding:6px 14px;font-size:0.75rem" onclick="deleteBanner(${b.id})">DELETE</button>
+    </div>
+  </div>`).join(''):'<div class="col-span-full text-center py-10 text-gray-600">No banners found.</div>';
+}
+
+function toggleBannerStatus(id,checked){
+  const bans=getBanners();
+  const b=bans.find(x=>x.id===id);
+  if(b){
+    b.active=checked;
+    DB.set('banners',bans);
+    showToast(checked?'✓ Banner Activated':'📴 Banner Hidden');
+  }
+}
+
+function deleteBanner(id){
+  if(!confirm('Delete this banner?'))return;
+  const bans=getBanners().filter(x=>x.id!==id);
+  DB.set('banners',bans);
+  renderBanners();
+  showToast('🗑 Banner deleted');
+}
+
+function openAddBannerModal(){
+  document.getElementById('bfTitle').value='';
+  document.getElementById('bfSub').value='';
+  document.getElementById('bfLink').value='';
+  document.getElementById('bfFile').value='';
+  tempBannerBase64=null;
+  document.getElementById('bannerPreview').classList.add('hidden');
+  document.getElementById('bannerModal').classList.add('open');
+}
+function closeBannerModal(){document.getElementById('bannerModal').classList.remove('open')}
+function saveBanner(e){
+  e.preventDefault();
+  if(!tempBannerBase64){alert('Please upload an image or video!');return}
+  try{
+    const bans=getBanners();
+    bans.push({
+      id:Date.now(),
+      title:document.getElementById('bfTitle').value.trim(),
+      sub:document.getElementById('bfSub').value.trim(),
+      link:document.getElementById('bfLink').value.trim(),
+      url:tempBannerBase64,
+      isVideo:tempBannerIsVideo,
+      active:true
+    });
+    DB.set('banners',bans);
+    closeBannerModal();
+    renderBanners();
+    showToast('🖼 Banner added successfully');
+  }catch(err){
+    alert('Error saving banner! The file might be too large for local storage limit (approx 5MB). Try compressing it.');
+  }
+}
+
+// ════════════ UPI SETTINGS ════════════
+function loadUpi(){
+  const s=getSettings();
+  document.getElementById('upiInput').value=s.upiId||'sehrab@fam';
+}
+function saveUpi(){
+  const s=getSettings();
+  s.upiId=document.getElementById('upiInput').value.trim();
+  DB.set('settings',s);
+  showToast('✅ UPI Settings Saved');
+}
+
+let toastTmr;
+function showToast(msg){
+  document.getElementById('adminToast').textContent=msg;
+  document.getElementById('adminToast').classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr=setTimeout(()=>document.getElementById('adminToast').classList.remove('show'),3000);
+}
+
+document.addEventListener('DOMContentLoaded',async()=>{
+  await DB.init();
+  showPanel('dashboard');
+});
+</script>
+</body>
+</html>

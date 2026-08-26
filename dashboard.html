@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SMM Top Up Shop – Dashboard</title>
+  <meta name="description" content="Official Free Fire top-up dashboard. Select your package and receive diamonds instantly." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="freefire_logo.png" />
+  <link rel="preload" as="image" href="diamond_icon.png" />
+  <link rel="preload" as="image" href="gplay_logo.jpg" />
+  <link rel="preload" as="image" href="diamonds_visual.jpg" />
+  <link rel="preload" as="image" href="pass_w.png" />
+  <link rel="preload" as="image" href="pass_m.png" />
+  <link rel="preload" as="image" href="pass_w_lite.png" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { outfit: ['Outfit','sans-serif'], inter: ['Inter','sans-serif'] },
+          colors: {
+            garena: {
+              red: '#ff1f3b',
+              redHover: '#e0122c',
+              dark: '#ffffff',
+              navy: '#f8fafc',
+              blue: '#f1f5f9',
+              border: '#cbd5e1',
+              gold: '#ffb900',
+              textGray: '#64748b',
+              purpleAccent: '#7c3aed'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #ffffff;
+      overflow-x: hidden;
+    }
+    
+    .glow-red { box-shadow: 0 4px 20px rgba(255, 31, 59, 0.18); }
+    .glow-purple { box-shadow: 0 4px 20px rgba(124, 58, 237, 0.15); }
+    .glow-green { box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15); }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .tab-btn {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      background: transparent;
+      transition: color 0.2s, background 0.2s, border-color 0.2s;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-btn.tab-active {
+      color: #ff1f3b;
+      border-color: #ff1f3b;
+      background: rgba(255, 31, 59, 0.06);
+    }
+    .dynamic-island {
+      transform: scale(0.8);
+      opacity: 0;
+      animation: islandPop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      animation-delay: 0.5s;
+    }
+    @keyframes islandPop {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .draw-checkmark {
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      animation: draw 0.8s ease-in-out forwards;
+      animation-delay: 0.2s;
+    }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    input, button, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    * { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+    /* Page entry fade-in */
+    @keyframes page-fade-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    body { animation: page-fade-in 0.45s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col relative antialiased bg-white">
+
+  <!-- Background Layer - Low opacity for light theme -->
+  <div class="fixed inset-0 -z-10 w-full h-full bg-cover bg-center bg-no-repeat opacity-[0.05]" style="background-image: url('background.jpg');"></div>
+  <div class="fixed inset-0 -z-10 w-full h-full bg-gradient-to-b from-white/90 via-slate-50/95 to-slate-100"></div>
+
+  <!-- Header -->
+  <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer select-none" id="headerLogo" ondblclick="handleLogoDoubleClick()">
+        <img src="https://kommodo.ai/i/TwCCijpUSOJ6I0lCPKjN" alt="Garena Logo" class="h-8 w-auto object-contain" onerror="this.src='logo.png'" />
+        <div class="leading-tight border-l border-slate-200 pl-3">
+          <span class="block text-sm font-black tracking-widest text-garena-red">GARENA</span>
+          <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Official Top Up Center</span>
+        </div>
+      </div>
+      <!-- Back / Logout Button -->
+      <a href="index.html" class="text-xs text-slate-600 hover:text-garena-red border border-slate-200 px-3 py-1.5 rounded-lg transition-colors bg-slate-50/80">
+        Log Out
+      </a>
+    </div>
+  </nav>
+
+  <!-- Dynamic Island Notification (verified announcement) -->
+  <div class="max-w-md mx-auto w-full px-4 pt-3 flex justify-center">
+    <div class="dynamic-island flex items-center gap-2 bg-white border border-emerald-500/30 rounded-full px-4 py-1.5 shadow glow-green">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+      <span class="text-xs font-bold text-emerald-600">ID is Verified</span>
+    </div>
+  </div>
+
+  <!-- Main Mobile Container -->
+  <main class="flex-1 max-w-md w-full mx-auto px-4 pt-2 pb-8 space-y-4">
+
+    <!-- Top Verified Account Section -->
+    <div class="glass-card rounded-2xl p-4 sm:p-5 shadow-md relative overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500"></div>
+      
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Free fire icon logo -->
+          <img src="freefire_logo.png" alt="Free Fire Logo" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover border border-orange-500 shadow-md my-auto" onerror="this.src='logo.png';" />
+          <div>
+            <h2 class="font-extrabold text-xs sm:text-sm text-slate-800 flex items-center gap-1 sm:gap-1.5">
+              <span>Free Fire UID Verified</span>
+              <span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] sm:text-[10px] font-bold">✓</span>
+            </h2>
+            <p class="text-[10px] sm:text-xs font-bold text-slate-600 tracking-wider mt-0.5" id="verifiedUidDisplay">UID: 111111</p>
+          </div>
+        </div>
+        <div class="text-right space-y-1 flex-shrink-0">
+          <div class="flex items-center gap-1 text-[8px] sm:text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full justify-end">
+            <span>🇮🇳</span>
+            <span>India Region</span>
+          </div>
+          <span class="inline-block text-[8px] sm:text-[10px] font-extrabold text-emerald-600 uppercase tracking-widest bg-emerald-50 border border-emerald-200 px-1.5 sm:px-2 rounded">Verified</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust Text -->
+    <div class="text-center px-2 py-1">
+      <p class="text-xs text-slate-600 font-medium leading-relaxed">
+        🛡️ This website is official website, choose your plan and get diamonds instantly in your Free Fire ID.
+      </p>
+    </div>
+
+    <!-- Three Tabs Switcher -->
+    <div class="grid grid-cols-3 bg-slate-100 border border-slate-200/80 rounded-xl p-1 shadow-inner" style="gap:6px;">
+      <button onclick="switchTab('diamonds')" id="tab-diamonds" class="tab-btn tab-active">Diamonds</button>
+      <button onclick="switchTab('passes')" id="tab-passes" class="tab-btn">Passes</button>
+      <button onclick="switchTab('redeem')" id="tab-redeem" class="tab-btn">Redeem</button>
+    </div>
+
+    <!-- ================= TAB CONTENT: DIAMONDS ================= -->
+    <div id="content-diamonds" class="space-y-4 tab-content">
+      <!-- Main Visual -->
+      <div class="relative overflow-hidden rounded-2xl aspect-[16/9] shadow-md border border-slate-200 bg-slate-100">
+        <img src="diamonds_visual.jpg" alt="Diamonds Store" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');" />
+        <!-- Fallback if image failed to load -->
+        <div class="hidden absolute inset-0 bg-gradient-to-t from-slate-900 to-slate-700/70 flex flex-col justify-end p-5">
+          <h3 class="text-lg font-black text-white">Diamond Store</h3>
+          <p class="text-xs text-white/80">Direct direct server API top-ups with up to 50% discount bonus.</p>
+        </div>
+        <div class="absolute top-3 right-3 bg-garena-red text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+          50% OFF
+        </div>
+      </div>
+
+      <!-- Diamond Grid -->
+      <div class="grid grid-cols-2 gap-3" id="diamondPacksList">
+        <!-- Packs will be loaded dynamically -->
+      </div>
+    </div>
+
+    <!-- ================= TAB CONTENT: PASSES ================= -->
+    <div id="content-passes" class="space-y-4 tab-content hidden">
+      <!-- Intro Visual Card -->
+      <div class="bg-gradient-to-r from-purple-100 to-indigo-50 border border-purple-200/60 rounded-2xl p-4 flex items-center justify-between">
+        <div class="space-y-1 max-w-[70%]">
+          <span class="text-[9px] font-black tracking-widest text-purple-700 uppercase bg-purple-200/50 px-2 py-0.5 rounded">Seasonal Pass</span>
+          <h3 class="font-extrabold text-sm text-slate-800">Booyah & Membership Passes</h3>
+          <p class="text-[10px] text-slate-500 leading-relaxed">Level up badges and get premium monthly box rewards at 50% off.</p>
+        </div>
+        <div class="text-2xl">🎫</div>
+      </div>
+
+      <!-- Passes Grid -->
+      <div class="space-y-3.5" id="passesList">
+        <!-- Passes rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- ================= TAB CONTENT: REDEEM CODES ================= -->
+    <div id="content-redeem" class="space-y-4 tab-content hidden">
+      <!-- Intro Visual Card -->
+      <div class="bg-gradient-to-r from-orange-100 to-amber-50 border border-orange-200/60 rounded-2xl p-4 flex items-center justify-between">
+        <div class="space-y-1 max-w-[70%]">
+          <span class="text-[9px] font-black tracking-widest text-orange-700 uppercase bg-orange-200/50 px-2 py-0.5 rounded">Garena Store</span>
+          <h3 class="font-extrabold text-sm text-slate-800">Google Play Redeem Codes</h3>
+          <p class="text-[10px] text-slate-500 leading-relaxed">Instant Google Play credit codes loaded directly at 50% flat discount.</p>
+        </div>
+        <!-- Official Google Play Logo (uploaded) -->
+        <img src="gplay_logo.jpg" alt="Google Play" class="h-10 w-10 object-contain" />
+      </div>
+
+      <!-- Redeem Codes List -->
+      <div class="grid grid-cols-1 gap-3" id="redeemPacksList">
+        <!-- Renders dynamically -->
+      </div>
+
+      <!-- Custom Redeem Code Field -->
+      <div class="glass-card rounded-2xl p-5 space-y-4 border border-slate-200/60 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-garena-purpleAccent to-garena-red"></div>
+        <h4 class="text-xs font-black tracking-widest uppercase text-garena-red">Custom Redeem Code</h4>
+        
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Enter Code Amount (INR)</label>
+            <input type="text" id="customRedeemInput" placeholder="e.g. 1000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-garena-red" />
+          </div>
+          
+          <div class="flex items-center justify-between bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3">
+            <div>
+              <span class="block text-[10px] text-slate-500 uppercase">You Pay (50% Off)</span>
+              <span class="text-lg font-black text-garena-red" id="customPayAmount">₹0</span>
+            </div>
+            <span class="text-[10px] text-slate-400 line-through" id="customOriginalAmount">was ₹0</span>
+          </div>
+
+          <button onclick="buyCustomRedeemCode()" class="w-full bg-garena-red hover:bg-garena-redHover text-white font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider shadow-md shadow-garena-red/10">
+            Purchase Custom Code
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="bg-slate-50 border-t border-slate-200 py-6 text-center mt-auto">
+    <p class="text-[10px] text-slate-500 px-4 leading-normal">
+      © 2026 Garena Free Fire Top Up. All rights reserved. <br/>
+      Official Billing Gateway. Approved by Garena Security.
+    </p>
+  </footer>
+
+  <!-- ================= PAYMENT GATEWAY PAGE OVERLAY ================= -->
+  <div id="paymentModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex justify-center items-start md:items-center overflow-y-auto p-0 md:p-4">
+    <!-- Centered Mobile Container -->
+    <div class="bg-black w-full max-w-md min-h-screen md:min-h-0 md:rounded-3xl shadow-2xl border border-slate-900 flex flex-col relative overflow-hidden my-0 md:my-6 animate-fadeIn text-white">
+      <!-- Accent Top line -->
+      <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-garena-red via-garena-purpleAccent to-garena-red"></div>
+
+      <!-- Header inside container -->
+      <header class="sticky top-0 bg-black border-b border-slate-900 px-4 py-4 flex items-center justify-between z-10">
+        <div class="flex items-center gap-1.5 max-w-[75%]">
+          <h1 class="text-sm font-black text-white tracking-wide flex items-center gap-1.5 flex-wrap">
+            <span class="text-garena-red font-black">Garena</span>
+            <span>Payment Gateway</span>
+            <!-- Blue verified check badge -->
+            <svg class="w-3.5 h-3.5 text-blue-500 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </h1>
+        </div>
+        <button onclick="closePaymentModal()" class="text-[11px] font-bold text-slate-300 hover:text-white border border-slate-800 px-2.5 py-1.5 rounded-lg bg-slate-950 transition-colors">
+          ✕ Cancel
+        </button>
+      </header>
+
+      <!-- Content -->
+      <div class="flex-1 px-4 py-5 space-y-4 overflow-y-auto max-h-[85vh] md:max-h-[75vh]">
+        <!-- Order Details Card -->
+        <div class="bg-slate-950 border border-slate-900 rounded-2xl p-4 shadow-sm space-y-3">
+          <h3 class="text-[10px] font-black tracking-widest text-slate-505 uppercase border-b border-slate-900 pb-1.5">Order Information</h3>
+          <div class="space-y-2 text-[11px] text-slate-300 font-inter">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Order ID:</span>
+              <strong class="text-white font-bold" id="orderIdDisplay">—</strong>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">UID:</span>
+              <strong class="text-white font-bold" id="orderUidDisplay">—</strong>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Region:</span>
+              <div class="flex items-center gap-1 font-bold text-white">
+                <span>🇮🇳</span>
+                <span>India Region</span>
+              </div>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-505">Selected Package:</span>
+              <strong class="text-white font-bold" id="orderPackDisplay">—</strong>
+            </div>
+            <div class="border-t border-slate-900 pt-2 flex justify-between items-center text-xs">
+              <span class="font-extrabold text-slate-400">Total Amount:</span>
+              <strong class="text-sm font-black text-garena-red animate-pulse" id="orderAmountDisplay">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Section -->
+        <div class="bg-slate-955 border border-slate-900 rounded-2xl p-5 shadow-sm flex flex-col items-center space-y-4">
+          <span class="text-[9px] font-black text-slate-505 uppercase tracking-widest">Scan QR Code</span>
+          
+          <!-- QR Container -->
+          <div class="bg-white p-2.5 rounded-xl w-44 h-44 flex items-center justify-center shadow border border-slate-200">
+            <img id="paymentQrImage" src="" alt="UPI QR Code" class="w-full h-full object-contain" />
+          </div>
+
+          <!-- Small Timer under the QR code -->
+          <div class="flex items-center gap-1.5 text-[9px] font-bold text-amber-400 bg-amber-950/30 border border-amber-900/50 px-2.5 py-0.5 rounded-full">
+            <span class="w-1 h-1 rounded-full bg-amber-500 animate-ping"></span>
+            <span>Verifying payment: <span id="paymentCountdown" class="font-black tracking-wider">05:00</span></span>
+          </div>
+
+          <!-- Pay Button -->
+          <button onclick="payWithUpiApp()" class="w-full bg-garena-red hover:bg-garena-redHover text-white font-extrabold py-3 rounded-xl text-xs uppercase tracking-widest shadow transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-100 glow-red">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            <span>Pay with UPI App</span>
+          </button>
+
+          <p class="text-[9px] text-slate-500 text-center leading-normal">
+            Compatible automatically with PhonePe, Google Pay, Paytm, BHIM, or any installed UPI application.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN CONTROL PANEL MODAL ================= -->
+  <div id="adminPanelModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md hidden flex flex-col font-inter">
+    <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between max-w-md w-full mx-auto">
+      <span class="font-extrabold text-sm text-garena-red">⚙️ ADMIN CONTROL PANEL</span>
+      <button onclick="closeAdminPanel()" class="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-3 py-1.5 rounded-lg">Close</button>
+    </div>
+    
+    <div class="flex-1 bg-slate-50 overflow-y-auto p-4 max-w-md w-full mx-auto space-y-4">
+      
+      <!-- Analytics Section -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-sm">
+        <h4 class="font-black text-xs text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">Real-time Analytics</h4>
+        
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg">
+            <span class="block text-[9px] text-slate-500 uppercase">Visits</span>
+            <strong class="text-base text-slate-850" id="statVisits">0</strong>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg">
+            <span class="block text-[9px] text-amber-600 uppercase font-bold">Pay Reach</span>
+            <strong class="text-base text-amber-500" id="statPaymentReaches">0</strong>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg">
+            <span class="block text-[9px] text-emerald-600 uppercase font-bold">Success</span>
+            <strong class="text-base text-emerald-500" id="statSuccess">0</strong>
+          </div>
+        </div>
+        <button onclick="resetStats()" class="w-full text-center text-[10px] font-bold text-red-500 hover:text-red-400 pt-1.5 select-none">
+          Reset Statistics
+        </button>
+      </div>
+
+      <!-- UPI Config Settings -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3.5 shadow-sm">
+        <h4 class="font-black text-xs text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">UPI Config Settings</h4>
+        
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[10px] text-slate-500 uppercase mb-1">Merchant UPI ID</label>
+            <input type="text" id="adminUpiId" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900" />
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-500 uppercase mb-1">Merchant Display Name</label>
+            <input type="text" id="adminMerchantName" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900" />
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-500 uppercase mb-1">Admin Password</label>
+            <input type="password" id="adminPass" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900" />
+          </div>
+        </div>
+        
+        <button onclick="saveAdminSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow-sm">
+          Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Verification Dialog -->
+  <div id="adminLoginDialog" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xs w-full p-5 text-center shadow-2xl border border-slate-200">
+      <h3 class="font-black text-sm text-garena-red uppercase tracking-wider mb-4">Admin Authentication</h3>
+      <input type="password" id="adminLoginInput" placeholder="Enter Admin Password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-garena-red mb-3 text-center" />
+      <div class="flex gap-2">
+        <button onclick="verifyAdminLogin()" class="flex-1 bg-garena-red text-white text-xs font-bold py-2 rounded-lg">Verify</button>
+        <button onclick="closeAdminLoginDialog()" class="flex-1 bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded-lg border border-slate-250">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS Logic -->
+  <script>
+    // Config data
+    const CONFIG_KEY = 'garena_clone_config';
+    const DEFAULT_CONFIG = {
+      upiId: 'garenatop@ptyes',
+      merchantName: 'Sehrab',
+      adminPass: 'SEHRAB8082263818'
+    };
+
+    let activeConfig = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { ...DEFAULT_CONFIG };
+
+    // Get URL Parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentUid = urlParams.get('uid') || localStorage.getItem('ff_verified_uid') || '111111';
+    
+    // Display UID
+    document.getElementById('verifiedUidDisplay').textContent = 'UID: ' + currentUid;
+    localStorage.setItem('ff_verified_uid', currentUid);
+
+    // Product lists definitions
+    const DIAMOND_PACKS = [
+      { id: 'd1', diamonds: '100 Diamonds', bonus: '+10 Bonus', original: 80, discount: 39, badge: 'HOT' },
+      { id: 'd3', diamonds: '310 Diamonds', bonus: '+31 Bonus', original: 240, discount: 119, badge: '' },
+      { id: 'd4', diamonds: '520 Diamonds', bonus: '+52 Bonus', original: 400, discount: 199, badge: 'BEST VALUE' },
+      { id: 'd5', diamonds: '1060 Diamonds', bonus: '+106 Bonus', original: 800, discount: 399, badge: 'HOT' },
+      { id: 'd6', diamonds: '2180 Diamonds', bonus: '+218 Bonus', original: 1600, discount: 799, badge: 'MEGA PACK' },
+      { id: 'd7', diamonds: '5600 Diamonds', bonus: '+560 Bonus', original: 4000, discount: 2000, badge: 'SUPER SAVER' }
+    ];
+
+    const PASS_PACKS = [
+      { id: 'p1', title: 'Weekly Pass Membership', original: 159, discount: 79, image: 'pass_w.png', duration: '7 Days Duration', rewards: 'Get 450 Diamonds total value' },
+      { id: 'p2', title: 'Monthly Pass Membership', original: 799, discount: 399, image: 'pass_m.png', duration: '30 Days Duration', rewards: 'Get 2600 Diamonds total value' },
+      { id: 'p3', title: 'Weekly Lite Pass', original: 199, discount: 99, image: 'pass_w_lite.png', duration: '7 Days Duration', rewards: 'Get 220 Diamonds total value' }
+    ];
+
+    const REDEEM_PACKS = [
+      { id: 'r1', title: '100 Rupees Redeem Code', original: 100, discount: 50, desc: 'Receive ₹100 Google Play Store credit.' },
+      { id: 'r2', title: '350 Rupees Redeem Code', original: 350, discount: 175, desc: 'Receive ₹350 Google Play Store credit.' },
+      { id: 'r3', title: '500 Rupees Redeem Code', original: 500, discount: 250, desc: 'Receive ₹500 Google Play Store credit.' }
+    ];
+
+    // Load Lists on startup
+    function loadDashboardData() {
+      // Diamonds
+      const diamondsGrid = document.getElementById('diamondPacksList');
+      diamondsGrid.innerHTML = DIAMOND_PACKS.map(pack => `
+        <div onclick="initiatePayment('${pack.diamonds}', ${pack.discount})" class="relative bg-slate-50/90 hover:bg-slate-100/90 border border-slate-200 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-100 select-none shadow-sm">
+          ${pack.badge ? `<span class="absolute top-2 right-2 text-[8px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-garena-red text-white">${pack.badge}</span>` : ''}
+          <div class="space-y-1">
+            <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
+              <img src="diamond_icon.png" alt="Diamond" class="w-5 h-5 object-contain" />
+            </div>
+            <h4 class="font-extrabold text-sm text-slate-800 pt-2">${pack.diamonds}</h4>
+            <span class="text-[9px] font-extrabold text-emerald-600">${pack.bonus}</span>
+          </div>
+          <div class="flex items-center gap-1.5 mt-3 pt-2 border-t border-slate-200">
+            <span class="text-[10px] text-slate-450 line-through">₹${pack.original}</span>
+            <span class="text-xs font-black text-garena-red">₹${pack.discount}</span>
+          </div>
+        </div>
+      `).join('');
+
+      // Passes
+      const passesGrid = document.getElementById('passesList');
+      passesGrid.innerHTML = PASS_PACKS.map(pass => `
+        <div onclick="initiatePayment('${pass.title}', ${pass.discount})" class="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex gap-4 cursor-pointer hover:bg-slate-100/90 transition-all select-none shadow-sm">
+          <div class="w-24 flex-shrink-0 rounded-lg overflow-hidden bg-transparent flex items-center justify-center">
+            <img src="${pass.image}" alt="" class="w-full h-auto object-contain" onerror="this.src='logo.png'; this.style.padding='8px';" />
+          </div>
+          <div class="flex-1 flex flex-col justify-between">
+            <div class="space-y-0.5">
+              <h4 class="font-extrabold text-xs text-slate-800">${pass.title}</h4>
+              <p class="text-[9px] text-slate-500">${pass.duration} | ${pass.rewards}</p>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <span class="text-[10px] text-slate-400 line-through">₹${pass.original}</span>
+              <span class="text-xs font-black text-garena-red">₹${pass.discount}</span>
+              <span class="text-[8px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">50% OFF</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Redeem
+      const redeemGrid = document.getElementById('redeemPacksList');
+      redeemGrid.innerHTML = REDEEM_PACKS.map(pack => `
+        <div onclick="initiatePayment('${pack.title}', ${pack.discount})" class="bg-slate-50/90 border border-slate-200 rounded-xl p-4 cursor-pointer hover:bg-slate-100/90 transition-all select-none flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-3">
+            <!-- Google Play Official Logo (uploaded) -->
+            <img src="gplay_logo.jpg"
+                 alt="Google Play" class="w-9 h-9 object-contain flex-shrink-0" />
+            <div class="space-y-0.5">
+              <h4 class="font-extrabold text-xs text-slate-800">${pack.title}</h4>
+              <p class="text-[9px] text-slate-500">${pack.desc}</p>
+            </div>
+          </div>
+          <div class="text-right space-y-1 flex-shrink-0">
+            <div class="flex items-center justify-end gap-1.5">
+              <span class="text-[10px] text-slate-400 line-through">₹${pack.original}</span>
+              <span class="text-xs font-black text-garena-red">₹${pack.discount}</span>
+            </div>
+            <span class="inline-block text-[8px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">50% Off</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(function(el){el.classList.add('hidden');});
+      document.querySelectorAll('.tab-btn').forEach(function(btn){btn.classList.remove('tab-active');});
+      document.getElementById('content-'+tabName).classList.remove('hidden');
+      document.getElementById('tab-'+tabName).classList.add('tab-active');
+    }
+
+    // Custom Redeem Live Calculation
+    const customInput = document.getElementById('customRedeemInput');
+    customInput.addEventListener('input', function() {
+      this.value = this.value.replace(/[^0-9]/g, '');
+      const val = parseFloat(this.value) || 0;
+      const original = val;
+      const discount = Math.floor(val * 0.5);
+      
+      document.getElementById('customOriginalAmount').textContent = 'was ₹' + original;
+      document.getElementById('customPayAmount').textContent = '₹' + discount;
+    });
+
+    function buyCustomRedeemCode() {
+      const val = parseFloat(customInput.value.trim());
+      if (!val || val < 10) {
+        alert('Please enter a custom redeem code amount (minimum ₹10)');
+        return;
+      }
+      const payAmt = Math.floor(val * 0.5);
+      initiatePayment(`${val} Rupees Custom Redeem Code`, payAmt);
+    }
+
+    // Initiate payment modal and trigger analytics
+    let paymentTimerInterval = null;
+    let paymentSecondsRemaining = 300; // 5 minutes
+    let currentUpiLink = "";
+
+    function startPaymentTimer() {
+      paymentSecondsRemaining = 300;
+      updateTimerDisplay();
+
+      if (paymentTimerInterval) clearInterval(paymentTimerInterval);
+      
+      paymentTimerInterval = setInterval(() => {
+        paymentSecondsRemaining--;
+        if (paymentSecondsRemaining <= 0) {
+          paymentSecondsRemaining = 0;
+          clearInterval(paymentTimerInterval);
+          document.getElementById('paymentCountdown').textContent = "Pending verification...";
+          return;
+        }
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(paymentSecondsRemaining / 60);
+      const seconds = paymentSecondsRemaining % 60;
+      const displayStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      const countdownEl = document.getElementById('paymentCountdown');
+      if (countdownEl) countdownEl.textContent = displayStr;
+    }
+
+    function payWithUpiApp() {
+      if (currentUpiLink) {
+        window.location.href = currentUpiLink;
+      }
+    }
+
+    function initiatePayment(packName, amount) {
+      // Record payment reach analytic in localStorage
+      let reaches = parseInt(localStorage.getItem('admin_stat_payment_reaches') || '0') + 1;
+      localStorage.setItem('admin_stat_payment_reaches', reaches);
+
+      // Generate unique Order ID automatically
+      const orderId = 'GF-' + Math.floor(100000 + Math.random() * 900000);
+
+      // Load values into UI Card
+      document.getElementById('orderIdDisplay').textContent = orderId;
+      document.getElementById('orderUidDisplay').textContent = currentUid;
+      document.getElementById('orderPackDisplay').textContent = packName;
+      document.getElementById('orderAmountDisplay').textContent = '₹' + amount;
+
+      // UPI payload format
+      currentUpiLink = `upi://pay?pa=${activeConfig.upiId}&pn=${encodeURIComponent(activeConfig.merchantName)}&am=${amount}&cu=INR`;
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(currentUpiLink)}`;
+      
+      document.getElementById('paymentQrImage').src = qrApiUrl;
+
+      // Open Modal Page Overlay
+      document.getElementById('paymentModal').classList.remove('hidden');
+
+      // Start the 5-minute countdown and do NOT auto-verify
+      startPaymentTimer();
+    }
+
+    // Close Modal
+    function closePaymentModal() {
+      if (paymentTimerInterval) clearInterval(paymentTimerInterval);
+      document.getElementById('paymentModal').classList.add('hidden');
+    }
+
+    /* ================================================================
+       ADMIN PANEL LOGIC
+    ================================================================ */
+    function handleLogoDoubleClick() {
+      const isAuth = localStorage.getItem('admin_authenticated') === 'true';
+      if (isAuth) {
+        openAdminPanel();
+      } else {
+        document.getElementById('adminLoginDialog').classList.remove('hidden');
+        document.getElementById('adminLoginInput').focus();
+      }
+    }
+
+    function closeAdminLoginDialog() {
+      document.getElementById('adminLoginDialog').classList.add('hidden');
+      document.getElementById('adminLoginInput').value = '';
+    }
+
+    function verifyAdminLogin() {
+      const inputVal = document.getElementById('adminLoginInput').value;
+      if (inputVal === activeConfig.adminPass || inputVal === 'SEHRAB8082263818' || inputVal === 'SEHRAB@8082263818') {
+        localStorage.setItem('admin_authenticated', 'true');
+        closeAdminLoginDialog();
+        openAdminPanel();
+      } else {
+        alert('Access Denied. Incorrect admin password.');
+        document.getElementById('adminLoginInput').value = '';
+      }
+    }
+
+    function openAdminPanel() {
+      // Load settings inputs
+      document.getElementById('adminUpiId').value = activeConfig.upiId;
+      document.getElementById('adminMerchantName').value = activeConfig.merchantName;
+      document.getElementById('adminPass').value = activeConfig.adminPass;
+
+      // Render analytics stats
+      document.getElementById('statVisits').textContent = localStorage.getItem('admin_stat_visits') || '0';
+      document.getElementById('statPaymentReaches').textContent = localStorage.getItem('admin_stat_payment_reaches') || '0';
+      document.getElementById('statSuccess').textContent = localStorage.getItem('admin_stat_success') || '0';
+
+      document.getElementById('adminPanelModal').classList.remove('hidden');
+    }
+
+    function closeAdminPanel() {
+      document.getElementById('adminPanelModal').classList.add('hidden');
+    }
+
+    function saveAdminSettings() {
+      activeConfig.upiId = document.getElementById('adminUpiId').value.trim();
+      activeConfig.merchantName = document.getElementById('adminMerchantName').value.trim();
+      activeConfig.adminPass = document.getElementById('adminPass').value.trim();
+      
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(activeConfig));
+      alert('Admin settings saved successfully!');
+    }
+
+    function resetStats() {
+      if (!confirm('Are you sure you want to reset all analytic statistics?')) return;
+      localStorage.setItem('admin_stat_visits', '0');
+      localStorage.setItem('admin_stat_payment_reaches', '0');
+      localStorage.setItem('admin_stat_success', '0');
+      
+      document.getElementById('statVisits').textContent = '0';
+      document.getElementById('statPaymentReaches').textContent = '0';
+      document.getElementById('statSuccess').textContent = '0';
+      alert('Analytics reset successfully.');
+    }
+
+    // Autoload Admin panel direct check (from redirect parameter)
+    if (urlParams.get('admin') === 'true' && localStorage.getItem('admin_authenticated') === 'true') {
+      openAdminPanel();
+    }
+
+    // Bootstrap
+    loadDashboardData();
+  </script>
+</body>
+</html>

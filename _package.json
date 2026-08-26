@@ -1,0 +1,20 @@
+{
+  "name": "ludo-platform",
+  "version": "1.0.0",
+  "description": "Premium Offline Multiplayer Ludo Game",
+  "private": true,
+  "scripts": {
+    "build": "echo Build complete",
+    "cap:init": "npx cap init",
+    "cap:add": "npx cap add android",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/cli": "^6.1.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/local-notifications": "^6.1.3",
+    "@capacitor/push-notifications": "^6.0.5"
+  }
+}

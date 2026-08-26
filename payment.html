@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>SMM Top Up Shop – Payment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background:#000000;
+      background-image:url('assets/bg.jpg');
+      background-size:cover;
+      background-position:center right;
+      background-attachment:fixed;
+      background-repeat:no-repeat;
+      color:#fff;
+      font-family:'Inter',sans-serif;
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden
+    }
+    body::before{
+      content:'';
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.85);
+      pointer-events:none;
+      z-index:0;
+    }
+    main, #gatewayBanner, #successScreen { position:relative; z-index:1; }
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-thumb{background:#FF3333;border-radius:3px}
+
+    /* PAYMENT BUTTONS */
+    .pay-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:12px;cursor:pointer;font-weight:900;font-size:0.95rem;transition:all 0.3s;border:none;width:100%;text-transform:uppercase;letter-spacing:0.05em}
+    .gpay-btn{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff}
+    .phonepe-btn{background:linear-gradient(135deg,#5f259f,#3d0d6b);color:#fff}
+    .paytm-btn{background:linear-gradient(135deg,#00b9f5,#002e6e);color:#fff}
+    .pay-btn:hover{transform:translateY(-2px);box-shadow:0 6px 15px rgba(0,0,0,0.4)}
+
+    .qr-wrap{background:#fff;padding:14px;border-radius:16px;display:inline-block;box-shadow:0 0 30px rgba(255,51,51,0.3)}
+
+    /* INPUTS */
+    .inp{background:#111;border:1px solid rgba(255,51,51,0.3);border-radius:10px;color:#fff;padding:16px;width:100%;font-family:'Inter',sans-serif;font-size:1.05rem;outline:none;transition:border-color 0.3s;text-align:center;letter-spacing:0.05em}
+    .inp:focus{border-color:#FF3333;box-shadow:0 0 0 4px rgba(255,51,51,0.15)}
+    .btn-gold{background:#FF3333;color:#fff;font-family:'Anton',sans-serif;letter-spacing:0.08em;border:none;border-radius:10px;cursor:pointer;transition:all 0.3s;text-transform:uppercase;font-weight:900;width:100%;padding:16px;font-size:1.1rem}
+    .btn-gold:hover{box-shadow:0 0 30px rgba(255,51,51,0.6);transform:translateY(-2px);background:#FF6600}
+
+    /* GATEWAY BANNER */
+    #gatewayBanner{background:linear-gradient(135deg,#200505,#3a0a0a);border-bottom:2px solid #FF3333;padding:14px 24px;text-align:center;position:sticky;top:0;z-index:100}
+    
+    /* SUCCESS SCREEN */
+    #successScreen{display:none;position:fixed;inset:0;background:#000;z-index:9999;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+    #successScreen.show{display:flex}
+
+    /* TIMER RING */
+    .timer-ring{transform:rotate(-90deg)}
+    .timer-ring circle{fill:none;stroke-linecap:round}
+    .tc-bg{stroke:#111;stroke-width:8}
+    .tc-fg{stroke:#FF3333;stroke-width:8;transition:stroke-dashoffset 1s linear,stroke 0.5s}
+    .tc-fg.warn{stroke:#ff4444}
+  </style>
+</head>
+<body>
+
+<!-- GATEWAY BANNER (ALWAYS VISIBLE AS BRANDING) -->
+<div id="gatewayBanner">
+  <div style="display:inline-flex;align-items:center;gap:10px">
+    <span style="color:#FF3333;font-family:'Anton',sans-serif;font-size:1.1rem;letter-spacing:0.08em">GARENA OFFICIAL PAYMENT GATEWAY</span>
+    <span style="color:#FF3333;font-size:1.1rem">☑</span>
+  </div>
+</div>
+
+<main class="max-w-5xl mx-auto px-4 py-8">
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- LEFT: ORDER & TIMER -->
+    <div class="space-y-6">
+      
+      <!-- ORDER DETAILS -->
+      <div style="background:#0a0a0a;border:1px solid rgba(255,51,51,0.3);border-radius:20px;padding:24px">
+        <p style="font-family:'Anton',sans-serif;font-size:0.85rem;letter-spacing:0.15em;color:#FF3333;margin-bottom:16px">📦 ORDER SUMMARY</p>
+        <div style="display:flex;gap:20px;align-items:flex-start">
+          <img id="oPhoto" src="" alt="ID" style="width:100px;height:100px;object-fit:cover;border-radius:14px;border:1px solid rgba(255,51,51,0.3);flex-shrink:0" onerror="this.src='https://via.placeholder.com/100/111/FF3333?text=FF'"/>
+          <div style="flex:1">
+            <div id="oName" style="font-family:'Anton',sans-serif;font-size:1.4rem;letter-spacing:0.04em;margin-bottom:6px;color:#fff"></div>
+            <div id="oAmount" style="font-family:'Anton',sans-serif;font-size:2rem;color:#FF3333;line-height:1"></div>
+            <div style="font-size:0.85rem;color:#888;margin-top:8px">Delivery to: <span id="oWa" style="color:#fff;font-weight:700"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMER DISPLAY (10:00) -->
+      <div style="background:#0a0a0a;border:1px solid rgba(255,51,51,0.3);border-radius:20px;padding:24px;text-align:center">
+        <p style="font-size:0.8rem;letter-spacing:0.15em;color:#ff4444;font-weight:900;margin-bottom:16px">⏳ COMPLETE PAYMENT BEFORE TIMER EXPIRES</p>
+        <div style="position:relative;display:inline-flex;align-items:center;justify-content:center">
+          <svg width="140" height="140" class="timer-ring">
+            <circle class="tc-bg" cx="70" cy="70" r="60"/>
+            <circle class="tc-fg" id="timerCircle" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="0"/>
+          </svg>
+          <div style="position:absolute;text-align:center">
+            <div id="timerDisp" style="font-family:'Anton',sans-serif;font-size:2.2rem;letter-spacing:0.04em;color:#fff;line-height:1">10:00</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: QR, APPS & UTR -->
+    <div class="space-y-6">
+
+      <!-- PAY APPS -->
+      <div style="background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:24px">
+        <p style="font-family:'Anton',sans-serif;font-size:0.85rem;letter-spacing:0.15em;color:#FF3333;margin-bottom:16px;text-align:center">📱 PAY DIRECTLY VIA APP</p>
+        <div style="display:grid;grid-template-columns:1fr;gap:12px">
+          <button class="pay-btn phonepe-btn" onclick="openPhonePe()">PhonePe</button>
+          <button class="pay-btn gpay-btn" onclick="openGPay()">Google Pay</button>
+          <button class="pay-btn paytm-btn" onclick="openPaytm()">Paytm</button>
+        </div>
+      </div>
+
+      <!-- QR -->
+      <div style="background:#0a0a0a;border:1px solid rgba(255,51,51,0.3);border-radius:20px;padding:24px;text-align:center">
+        <p style="font-family:'Anton',sans-serif;font-size:0.85rem;letter-spacing:0.15em;color:#FF3333;margin-bottom:16px">SCAN QR CODE TO PAY</p>
+        <div class="qr-wrap">
+          <img id="qrImg" src="" alt="UPI QR" style="width:220px;height:220px;display:block;margin:0 auto"/>
+        </div>
+        <p style="font-size:1rem;color:#ccc;margin-top:14px;font-weight:700">Scan &amp; Pay: ₹<span id="qrAmt" style="color:#FF3333"></span></p>
+      </div>
+
+      <!-- UTR SUBMISSION -->
+      <div style="background:#0a0a0a;border:1px solid #FF3333;border-radius:20px;padding:24px;box-shadow:0 0 20px rgba(255,51,51,0.15)">
+        <p style="font-family:'Anton',sans-serif;font-size:1rem;letter-spacing:0.1em;color:#fff;margin-bottom:12px;text-align:center">✅ PAYMENT DONE? ENTER UTR</p>
+        <input type="text" id="utrInput" class="inp" placeholder="Enter 12-Digit UTR Number" maxlength="20" style="margin-bottom:16px"/>
+        <button class="btn-gold" onclick="submitUTR()">Verify Payment</button>
+        <p id="utrErr" style="color:#ff4444;font-size:0.85rem;margin-top:12px;display:none;font-weight:700;text-align:center"></p>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- SUCCESS SCREEN -->
+<div id="successScreen">
+  <div style="max-width:500px;width:100%;text-align:center">
+    <div style="font-size:6rem;margin-bottom:20px;line-height:1">🎉</div>
+    <h1 style="font-family:'Anton',sans-serif;font-size:3rem;letter-spacing:0.05em;color:#FF3333;margin-bottom:12px">PAYMENT SUBMITTED</h1>
+    <p style="color:#22c55e;font-size:1.2rem;font-weight:800;margin-bottom:10px">Your UTR is currently being verified</p>
+    <p style="color:#aaa;font-size:1rem;line-height:1.6;margin-bottom:30px">Once verified by our system, your account credentials will be automatically sent to WhatsApp: <br/><strong style="color:#fff;font-size:1.3rem" id="sWa"></strong></p>
+    <a href="index.html" style="display:inline-block;background:#FF3333;color:#fff;font-family:'Anton',sans-serif;padding:16px 50px;border-radius:14px;font-size:1.2rem;letter-spacing:0.08em;text-decoration:none;font-weight:900">RETURN TO STORE</a>
+  </div>
+</div>
+
+<script>
+const P=new URLSearchParams(window.location.search);
+let idKey=P.get('idKey')||'';
+let idName=P.get('idName')||'';
+let amount=P.get('amount')||'';
+let wa=P.get('wa')||'';
+let upiId=P.get('upi')||'';
+let photo=P.get('photo')||'';
+let leadId=P.get('leadId')||'';
+let payeeName=P.get('payeeName')||'Sehrab';
+
+// Fallback to localStorage if URL params are missing or invalid
+if (!amount || amount === '0' || amount === 'NaN') {
+  try {
+    const temp = JSON.parse(localStorage.getItem('gois_checkout_temp'));
+    if (temp) {
+      idKey = idKey || temp.idKey || '';
+      idName = idName || temp.idName || 'Premium Free Fire ID';
+      amount = amount && amount !== '0' && amount !== 'NaN' ? amount : (temp.amount || '0');
+      wa = wa || temp.wa || '';
+      upiId = upiId || temp.upi || 'sehrab88@fam';
+      photo = photo || temp.photo || '';
+      leadId = leadId || temp.leadId || '';
+      payeeName = payeeName || temp.payeeName || 'Sehrab';
+    }
+  } catch (e) {
+    console.error("Failed to parse temp checkout data", e);
+  }
+}
+
+// Final defaults
+idName = idName || 'Premium Free Fire ID';
+amount = amount || '0';
+upiId = upiId || 'sehrab88@fam';
+
+// Fill elements
+document.getElementById('oName').textContent=idName;
+document.getElementById('oAmount').textContent='₹'+parseInt(amount).toLocaleString('en-IN');
+document.getElementById('oWa').textContent=wa;
+document.getElementById('qrAmt').textContent=parseInt(amount).toLocaleString('en-IN');
+document.getElementById('sWa').textContent=wa;
+if(photo)document.getElementById('oPhoto').src=photo;
+
+// Generate QR using EXACT format: upi://pay?pa=sehrab88@fam&pn=Sehrab&am=<price>&cu=INR
+const upiStr=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR`;
+document.getElementById('qrImg').src=`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiStr)}&bgcolor=ffffff&color=000000`;
+
+// UPI App Deep Links (dynamic amount)
+function openGPay(){ window.location.href=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR`; }
+function openPhonePe(){ window.location.href=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR`; }
+function openPaytm(){ window.location.href=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${amount}&cu=INR`; }
+
+// Timer (10 Minutes)
+const TOTAL=600; 
+let left=TOTAL;
+const circ=document.getElementById('timerCircle');
+const circumference=2*Math.PI*60;
+circ.style.strokeDasharray=circumference;
+circ.style.strokeDashoffset=0;
+
+function tick(){
+  const m=Math.floor(left/60),s=left%60;
+  document.getElementById('timerDisp').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  circ.style.strokeDashoffset=circumference*(1-left/TOTAL);
+  if(left<=60){circ.classList.add('warn')}
+  if(left<=0){clearInterval(tmr);document.getElementById('timerDisp').textContent='0:00';return}
+  left--;
+}
+const tmr=setInterval(tick,1000);
+tick();
+
+// On page load, sync leads from server
+let allServerData = {};
+async function syncFromServer(){
+  try {
+    const res = await fetch('/api/data');
+    if (res.ok) {
+      allServerData = await res.json();
+      if (allServerData.leads) {
+        localStorage.setItem('gois_leads', JSON.stringify(allServerData.leads));
+      }
+    }
+  } catch(e) {
+    console.log("Server sync failed:", e);
+  }
+}
+syncFromServer();
+
+// Submit UTR
+function submitUTR(){
+  const utr=document.getElementById('utrInput').value.trim();
+  const errEl=document.getElementById('utrErr');
+  if(!utr||utr.length<8){errEl.textContent='❌ Please enter a valid 12-digit UTR number.';errEl.style.display='block';return}
+  errEl.style.display='none';
+
+  const leads=JSON.parse(localStorage.getItem('gois_leads')||'[]');
+  const idx=leads.findIndex(l=>l.id===leadId||(l.wa===wa && l.idKey===idKey));
+  const entry={
+    id:leadId||`lead_${Date.now()}`,
+    wa,
+    idKey,
+    idName,
+    price:parseInt(amount),
+    utr,
+    timestamp:new Date().toISOString(),
+    status:'payment_pending',
+    isListingFee: idKey === 'listing_fee'
+  };
+
+  if(idx>=0)leads[idx]={...leads[idx],...entry};
+  else leads.push(entry);
+  localStorage.setItem('gois_leads',JSON.stringify(leads));
+  allServerData.leads = leads;
+
+  // Post back to server database
+  fetch('/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(allServerData)
+  }).catch(err => console.log("Failed to sync leads to server:", err));
+
+  // Sync to IndexedDB GarenaStoreDB store: leads
+  const req=indexedDB.open('GarenaStoreDB',1);
+  req.onsuccess=e=>{
+    try{
+      const db=e.target.result;
+      const tx=db.transaction('store','readwrite');
+      tx.objectStore('store').put(leads,'leads');
+    }catch(err){}
+  };
+
+  clearInterval(tmr);
+  
+  // Show Verification simulation
+  const inputBtn = document.querySelector('button[onclick="submitUTR()"]');
+  inputBtn.textContent = 'VERIFYING...';
+  inputBtn.style.opacity = '0.7';
+  inputBtn.disabled = true;
+  
+  setTimeout(()=>{
+    document.getElementById('successScreen').classList.add('show');
+  },1500);
+}
+</script>
+</body>
+</html>
