@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Admin Control Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: "#ef4444", 600: "#dc2626", 700: "#b91c1c" },
+            dark: { 800: "#121318", 850: "#0e0f13", 900: "#090a0d" }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+    body { font-family: "Plus Jakarta Sans", sans-serif; background-color: #090a0d; color: #f3f4f6; }
+    .glass-card { background: rgba(18, 19, 24, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-card-hover { transition: all 0.2s ease; }
+    .glass-card-hover:hover { border-color: rgba(239, 68, 68, 0.4); transform: translateY(-2px); }
+    .tab-btn.active { background: #ef4444; color: #ffffff; font-weight: 700; }
+    .nav-item.active { background: rgba(239, 68, 68, 0.15); color: #ef4444; border-left: 3px solid #ef4444; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #090a0d; }
+    ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-red-500 selection:text-white">
+
+  <!-- AUTH OVERLAY / LOGIN SCREEN -->
+  <div id="authScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-4">
+    <div class="glass-card w-full max-w-md p-8 rounded-2xl border border-red-500/30 shadow-2xl shadow-red-950/40 text-center space-y-6">
+      <div class="inline-flex p-4 rounded-full bg-red-500/10 border border-red-500/30 text-red-500 mb-2">
+        <i class="fa-solid fa-shield-halved text-3xl"></i>
+      </div>
+      <div>
+        <h2 class="text-2xl font-extrabold text-white tracking-wide">ADMIN ACCESS</h2>
+        <p class="text-xs text-zinc-400 mt-1">Enter master security key to continue</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">Master Password</label>
+          <div class="relative">
+            <input type="password" id="authPassword" required placeholder="••••••••••••" 
+                   class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all font-mono" />
+            <button type="button" onclick="togglePassVisibility()" class="absolute right-3 top-3.5 text-zinc-500 hover:text-zinc-300 text-sm">
+              <i id="passEyeIcon" class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="loginError" class="hidden p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+          <span id="loginErrorText">Incorrect password</span>
+        </div>
+
+        <button type="submit" id="btnLogin" class="w-full py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-lg shadow-red-600/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+          <span>Authenticate</span>
+          <i class="fa-solid fa-arrow-right text-sm"></i>
+        </button>
+      </form>
+      <p class="text-[11px] text-zinc-600">Protected by 256-bit server-side session tokens</p>
+    </div>
+  </div>
+
+  <!-- MAIN ADMIN LAYOUT -->
+  <div id="adminApp" class="hidden min-h-screen flex flex-col md:flex-row">
+    
+    <!-- Sidebar -->
+    <aside class="w-full md:w-64 bg-dark-850 border-b md:border-b-0 md:border-r border-zinc-800 flex-shrink-0 flex flex-col">
+      <div class="p-5 border-b border-zinc-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-red-600 to-amber-500 flex items-center justify-center font-extrabold text-white text-lg shadow-md shadow-red-600/20">
+            A
+          </div>
+          <div>
+            <h1 class="font-black text-sm text-white tracking-wider uppercase">ADMIN PANEL</h1>
+            <span class="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Live Sync
+            </span>
+          </div>
+        </div>
+        <button onclick="toggleMobileNav()" class="md:hidden text-zinc-400 hover:text-white text-lg p-2">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+
+      <nav id="navMenu" class="hidden md:flex flex-col p-3 space-y-1 text-sm font-medium flex-1 overflow-y-auto">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+          <i class="fa-solid fa-chart-line text-zinc-400 w-5"></i>
+          <span>Dashboard</span>
+        </button>
+        <button onclick="switchTab('visitors')" id="nav-visitors" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+          <i class="fa-solid fa-users text-zinc-400 w-5"></i>
+          <span>Visitors & Traffic</span>
+        </button>
+        <button onclick="switchTab('products')" id="nav-products" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+          <i class="fa-solid fa-box-open text-zinc-400 w-5"></i>
+          <span>Products Management</span>
+        </button>
+        <button onclick="switchTab('banners')" id="nav-banners" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+          <i class="fa-solid fa-images text-zinc-400 w-5"></i>
+          <span>Banners Management</span>
+        </button>
+        <button onclick="switchTab('upi')" id="nav-upi" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+          <i class="fa-solid fa-qrcode text-zinc-400 w-5"></i>
+          <span>UPI Settings</span>
+        </button>
+        <button onclick="switchTab('api')" id="nav-api" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+          <i class="fa-solid fa-plug text-zinc-400 w-5"></i>
+          <span>API Settings</span>
+        </button>
+        <button onclick="switchTab('support')" id="nav-support" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+          <i class="fa-solid fa-headset text-zinc-400 w-5"></i>
+          <span>Support Chat</span>
+        </button>
+      </nav>
+
+      <div class="p-4 border-t border-zinc-800">
+        <button onclick="handleLogout()" class="w-full py-2.5 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-red-400 border border-zinc-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
+        <div>
+          <h2 id="pageTitle" class="text-xl md:text-2xl font-black text-white tracking-tight">Dashboard Overview</h2>
+          <p id="pageSubTitle" class="text-xs text-zinc-400">Live website analytics and server control center</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/" target="_blank" class="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-semibold flex items-center gap-2 border border-zinc-700 transition-all">
+            <i class="fa-solid fa-globe text-brand-500"></i>
+            <span>View Main Site</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-zinc-400"></i>
+          </a>
+          <button onclick="fetchStoreData()" class="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs border border-zinc-700 transition-all" title="Refresh Data">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="toastAlert" class="hidden fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-xl flex items-center gap-2 transition-all">
+        <i class="fa-solid fa-circle-check text-sm"></i>
+        <span id="toastMsg">Changes saved successfully</span>
+      </div>
+
+      <!-- SECTION 1: DASHBOARD -->
+      <section id="sec-dashboard" class="space-y-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="glass-card glass-card-hover p-5 rounded-2xl border border-zinc-800 space-y-2">
+            <div class="flex items-center justify-between text-zinc-400">
+              <span class="text-xs font-semibold uppercase tracking-wider">Total Visits</span>
+              <div class="p-2 rounded-lg bg-blue-500/10 text-blue-400"><i class="fa-solid fa-eye text-sm"></i></div>
+            </div>
+            <div id="statTotalVisits" class="text-2xl md:text-3xl font-black text-white">0</div>
+            <p class="text-[11px] text-zinc-500">All-time website visits</p>
+          </div>
+
+          <div class="glass-card glass-card-hover p-5 rounded-2xl border border-zinc-800 space-y-2">
+            <div class="flex items-center justify-between text-zinc-400">
+              <span class="text-xs font-semibold uppercase tracking-wider">Active Now</span>
+              <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-bolt text-sm"></i></div>
+            </div>
+            <div id="statActiveNow" class="text-2xl md:text-3xl font-black text-emerald-400 flex items-center gap-2">
+              <span>0</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            </div>
+            <p class="text-[11px] text-zinc-500">Real-time active sessions</p>
+          </div>
+
+          <div class="glass-card glass-card-hover p-5 rounded-2xl border border-zinc-800 space-y-2">
+            <div class="flex items-center justify-between text-zinc-400">
+              <span class="text-xs font-semibold uppercase tracking-wider">Today Visits</span>
+              <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400"><i class="fa-solid fa-calendar-day text-sm"></i></div>
+            </div>
+            <div id="statTodayVisits" class="text-2xl md:text-3xl font-black text-white">0</div>
+            <p class="text-[11px] text-zinc-500">Recorded today</p>
+          </div>
+
+          <div class="glass-card glass-card-hover p-5 rounded-2xl border border-zinc-800 space-y-2">
+            <div class="flex items-center justify-between text-zinc-400">
+              <span class="text-xs font-semibold uppercase tracking-wider">Page Views</span>
+              <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400"><i class="fa-solid fa-layer-group text-sm"></i></div>
+            </div>
+            <div id="statPageViews" class="text-2xl md:text-3xl font-black text-white">0</div>
+            <p class="text-[11px] text-zinc-500">Total pages viewed</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="glass-card p-5 rounded-2xl border border-zinc-800 flex items-center justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Support Chat</h4>
+              <p id="dashSupportStatus" class="text-sm font-extrabold text-white mt-1">ENABLED</p>
+            </div>
+            <button onclick="toggleSupportChatQuick()" id="dashBtnSupport" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all">
+              Toggle
+            </button>
+          </div>
+
+          <div class="glass-card p-5 rounded-2xl border border-zinc-800 flex items-center justify-between">
+            <div>
+              <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">UPI ID</h4>
+              <p id="dashUpiId" class="text-xs font-mono font-bold text-amber-400 mt-1 truncate max-w-[150px]">—</p>
+            </div>
+            <button onclick="switchTab('upi')" class="px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold border border-zinc-700 transition-all">
+              Edit
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: VISITORS & TRAFFIC -->
+      <section id="sec-visitors" class="hidden space-y-6">
+        <div class="glass-card p-6 rounded-2xl border border-zinc-800 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-base font-extrabold text-white">Live Visitor Activity Log</h3>
+              <p class="text-xs text-zinc-400">Real-time traffic events without customer purchase tracking</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-xs font-semibold text-emerald-400">Auto-refreshing (5s)</span>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto border border-zinc-800/80 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-dark-900 border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-bold">
+                <tr>
+                  <th class="p-3.5">Visitor / Player</th>
+                  <th class="p-3.5">Free Fire UID</th>
+                  <th class="p-3.5">Real IP Address</th>
+                  <th class="p-3.5">Location</th>
+                  <th class="p-3.5">Activity / Event</th>
+                  <th class="p-3.5">Time (IST)</th>
+                </tr>
+              </thead>
+              <tbody id="tblVisitorLogs" class="divide-y divide-zinc-800/60 font-medium">
+                <tr><td colspan="6" class="p-6 text-center text-zinc-500">Loading visitor activity...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: PRODUCTS MANAGEMENT -->
+      <section id="sec-products" class="hidden space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-2 bg-dark-900 p-1.5 rounded-xl border border-zinc-800">
+            <button onclick="filterProducts('all')" id="prodTab-all" class="tab-btn active px-4 py-2 rounded-lg text-xs font-bold transition-all">
+              📦 All Products
+            </button>
+            <button onclick="filterProducts('diamonds')" id="prodTab-diamonds" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all">
+              💎 Diamonds
+            </button>
+            <button onclick="filterProducts('passes')" id="prodTab-passes" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all">
+              🎫 Memberships / Passes
+            </button>
+            <button onclick="filterProducts('likes')" id="prodTab-likes" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all">
+              👍 Profile Likes
+            </button>
+            <button onclick="filterProducts('redeem')" id="prodTab-redeem" class="tab-btn px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all">
+              🎁 Redeem Codes
+            </button>
+          </div>
+          <button onclick="openProductModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-red-600/20 flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add New Product</span>
+          </button>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl border border-zinc-800">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-dark-900 border-b border-zinc-800 text-zinc-400 uppercase tracking-wider font-bold">
+                <tr>
+                  <th class="p-3.5">Image</th>
+                  <th class="p-3.5">Title / Name</th>
+                  <th class="p-3.5">Original Price</th>
+                  <th class="p-3.5">Discount Price</th>
+                  <th class="p-3.5">Bonus / Details</th>
+                  <th class="p-3.5">Status</th>
+                  <th class="p-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tblProducts" class="divide-y divide-zinc-800/60">
+                <tr><td colspan="7" class="p-6 text-center text-zinc-500">Loading products...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: BANNERS MANAGEMENT -->
+      <section id="sec-banners" class="hidden space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-extrabold text-white">Banners Management</h3>
+            <p class="text-xs text-zinc-400">Directly upload banner images from your computer or mobile phone</p>
+          </div>
+          <button onclick="openBannerModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-red-600/20 flex items-center gap-2 transition-all">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Upload New Banner</span>
+          </button>
+        </div>
+
+        <div id="bannersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        </div>
+      </section>
+
+      <!-- SECTION 5: UPI SETTINGS -->
+      <section id="sec-upi" class="hidden space-y-6">
+        <div class="glass-card max-w-2xl p-6 rounded-2xl border border-zinc-800 space-y-6">
+          <div>
+            <h3 class="text-base font-extrabold text-white">Merchant UPI Payment Settings</h3>
+            <p class="text-xs text-zinc-400">Updates payment destination on the main website immediately</p>
+          </div>
+
+          <form onsubmit="saveUpiSettings(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase">Merchant UPI ID</label>
+              <input type="text" id="inpUpiId" required placeholder="paytm.s2sr8jx@pty" 
+                     class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-red-500 focus:outline-none font-mono" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase">Merchant / Store Name</label>
+              <input type="text" id="inpMerchantName" required placeholder="Garena Official Store" 
+                     class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-red-500 focus:outline-none" />
+            </div>
+
+            <button type="submit" id="btnSaveUpi" class="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all">
+              Save UPI Settings
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- SECTION 6: API SETTINGS -->
+      <section id="sec-api" class="hidden space-y-6">
+        <div class="glass-card max-w-2xl p-6 rounded-2xl border border-zinc-800 space-y-6">
+          <div>
+            <h3 class="text-base font-extrabold text-white">Player Info Lookup API Settings</h3>
+            <p class="text-xs text-zinc-400">Configure backend provider API without touching code</p>
+          </div>
+
+          <form onsubmit="saveApiSettings(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-zinc-400 mb-1.5 uppercase">API Endpoint URL</label>
+              <input type="url" id="inpApiEndpoint" required placeholder="https://najmiinfoob55paid.vercel.app/info?uid=" 
+                     class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:border-red-500 focus:outline-none font-mono" />
+            </div>
+
+            <button type="submit" id="btnSaveApi" class="px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all">
+              Save API Configuration
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- SECTION 7: SUPPORT CHAT -->
+      <section id="sec-support" class="hidden space-y-6">
+        <div class="glass-card max-w-2xl p-6 rounded-2xl border border-zinc-800 space-y-6">
+          <div>
+            <h3 class="text-base font-extrabold text-white">Support Chat Button Control</h3>
+            <p class="text-xs text-zinc-400">Enable or disable floating support chat on main website</p>
+          </div>
+
+          <div class="flex items-center justify-between p-4 bg-dark-900 rounded-xl border border-zinc-800">
+            <div>
+              <span class="block text-sm font-bold text-white">Support Chat Status</span>
+              <span id="supportChatDesc" class="text-xs text-zinc-400">Currently Visible on website</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="chkSupportChat" onchange="toggleSupportChat(this.checked)" class="sr-only peer">
+              <div class="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+            </label>
+          </div>
+        </div>
+      </section>
+
+
+    </main>
+  </div>
+
+  <!-- PRODUCT EDIT MODAL -->
+  <div id="productModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 overflow-y-auto flex items-center justify-center">
+    <div class="glass-card w-full max-w-lg p-6 rounded-2xl border border-zinc-800 space-y-4">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <h3 id="prodModalTitle" class="text-base font-extrabold text-white">Add / Edit Product</h3>
+        <button onclick="closeProductModal()" class="text-zinc-500 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="saveProductModal(event)" class="space-y-3">
+        <input type="hidden" id="pmId" />
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-400 uppercase">Product Title / Name</label>
+          <input type="text" id="pmName" required placeholder="e.g. 150 Diamonds" class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-zinc-400 uppercase">Category</label>
+            <select id="pmCategory" class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none">
+              <option value="diamonds">Diamonds</option>
+              <option value="passes">Passes / Memberships</option>
+              <option value="likes">Profile Likes</option>
+              <option value="redeem">Redeem Codes</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-zinc-400 uppercase">Status</label>
+            <select id="pmStatus" class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none">
+              <option value="active">Active (Visible)</option>
+              <option value="disabled">Disabled (Hidden)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-zinc-400 uppercase">Original Price (₹)</label>
+            <input type="number" id="pmOriginalPrice" required step="1" placeholder="150" class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none font-mono" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-zinc-400 uppercase">Discount Price (₹)</label>
+            <input type="number" id="pmDiscountPrice" required step="1" placeholder="99" class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none font-mono" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-400 uppercase">Bonus / Details Badge</label>
+          <input type="text" id="pmBonus" placeholder="+15 Bonus or 7 Days Duration" class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-400 uppercase">Product Image</label>
+          <div class="flex items-center gap-3 mt-1">
+            <input type="text" id="pmImage" placeholder="diamond_icon.png or /api/img?..." class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none font-mono" />
+            <label class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold cursor-pointer shrink-0 border border-zinc-700">
+              <i class="fa-solid fa-upload"></i> Upload
+              <input type="file" accept="image/*" onchange="uploadImageFile(this, 'pmImage')" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-800">
+          <button type="button" onclick="closeProductModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" id="btnSaveProd" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-red-600/20">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- BANNER EDIT MODAL -->
+  <div id="bannerModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 overflow-y-auto flex items-center justify-center">
+    <div class="glass-card w-full max-w-lg p-6 rounded-2xl border border-zinc-800 space-y-4">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <h3 class="text-base font-extrabold text-white">Upload / Edit Banner</h3>
+        <button onclick="closeBannerModal()" class="text-zinc-500 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="saveBannerModal(event)" class="space-y-3">
+        <input type="hidden" id="bmId" />
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-400 uppercase">Banner Title</label>
+          <input type="text" id="bmTitle" placeholder="Special Discount Offer" class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-400 uppercase">Subtitle</label>
+          <input type="text" id="bmSubtitle" placeholder="Get 50% flat discount on all packs" class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-zinc-400 uppercase">Banner Image File</label>
+          <div class="flex items-center gap-3 mt-1">
+            <input type="text" id="bmImage" required placeholder="ad_banner1.jpg or /api/img?..." class="w-full bg-dark-900 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-red-500 focus:outline-none font-mono" />
+            <label class="px-3.5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold cursor-pointer shrink-0 border border-brand-500 shadow-md shadow-red-600/20">
+              <i class="fa-solid fa-file-arrow-up"></i> Select Device File
+              <input type="file" accept="image/*" onchange="uploadImageFile(this, 'bmImage')" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-800">
+          <button type="button" onclick="closeBannerModal()" class="px-4 py-2 bg-zinc-800 text-zinc-300 rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" id="btnSaveBanner" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-red-600/20">Save Banner</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let globalStore = {};
+    let activeCategory = 'all';
+    let autoRefreshTimer = null;
+
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/admin-auth?action=verify', { method: 'GET', credentials: 'include' });
+        const data = await res.json();
+        if (data.valid) {
+          document.getElementById('authScreen').classList.add('hidden');
+          document.getElementById('adminApp').classList.remove('hidden');
+          fetchStoreData();
+          startAutoRefresh();
+        } else {
+          document.getElementById('authScreen').classList.remove('hidden');
+          document.getElementById('adminApp').classList.add('hidden');
+        }
+      } catch {
+        document.getElementById('authScreen').classList.remove('hidden');
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('authPassword').value.trim();
+      const btn = document.getElementById('btnLogin');
+      const errBox = document.getElementById('loginError');
+      errBox.classList.add('hidden');
+      btn.disabled = true;
+      btn.innerText = 'Verifying...';
+
+      try {
+        const res = await fetch('/api/admin-auth?action=login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ action: 'login', password: pwd })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('authScreen').classList.add('hidden');
+          document.getElementById('adminApp').classList.remove('hidden');
+          fetchStoreData();
+          startAutoRefresh();
+        } else {
+          errBox.classList.remove('hidden');
+          document.getElementById('loginErrorText').innerText = data.error || 'Incorrect password';
+        }
+      } catch {
+        errBox.classList.remove('hidden');
+        document.getElementById('loginErrorText').innerText = 'Network connection failed';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Authenticate';
+      }
+    }
+
+    async function handleLogout() {
+      await fetch('/api/admin-auth?action=logout', { method: 'POST', credentials: 'include' });
+      location.reload();
+    }
+
+    function togglePassVisibility() {
+      const inp = document.getElementById('authPassword');
+      const icon = document.getElementById('passEyeIcon');
+      if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
+      else { inp.type = 'password'; icon.className = 'fa-solid fa-eye'; }
+    }
+
+    async function fetchStoreData() {
+      try {
+        const res = await fetch('/api/admin/config', { method: 'GET', credentials: 'include' });
+        if (res.status === 401) {
+          document.getElementById('authScreen').classList.remove('hidden');
+          document.getElementById('adminApp').classList.add('hidden');
+          return;
+        }
+        const data = await res.json();
+        globalStore = data.state || data;
+        renderDashboard();
+        renderVisitors();
+        renderProducts();
+        renderBanners();
+        populateForms();
+      } catch(e) { console.warn('Fetch store error:', e); }
+    }
+
+    function startAutoRefresh() {
+      if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+      autoRefreshTimer = setInterval(fetchStoreData, 5000);
+    }
+
+    function renderDashboard() {
+      const st = globalStore || {};
+      const ana = st.analytics || {};
+
+      document.getElementById('statTotalVisits').innerText = (st.visits || 0).toLocaleString();
+      document.getElementById('statActiveNow').querySelector('span').innerText = ana.currentlyActive || 1;
+      document.getElementById('statTodayVisits').innerText = (ana.todayVisits || 0).toLocaleString();
+      document.getElementById('statPageViews').innerText = (st.pageViews || 0).toLocaleString();
+
+      const chatOn = (st.supportChatEnabled !== undefined) ? (st.supportChatEnabled === true || st.supportChatEnabled === 'true') : true;
+      document.getElementById('dashSupportStatus').innerText = chatOn ? 'ENABLED (Visible)' : 'DISABLED (Hidden)';
+      document.getElementById('dashSupportStatus').className = chatOn ? 'text-sm font-extrabold text-emerald-400 mt-1' : 'text-sm font-extrabold text-red-400 mt-1';
+
+      const maintOn = st.maintenanceMode && st.maintenanceMode.active;
+      document.getElementById('dashMaintStatus').innerText = maintOn ? 'ON (Maintenance)' : 'OFF (Live)';
+      document.getElementById('dashMaintStatus').className = maintOn ? 'text-sm font-extrabold text-red-500 mt-1' : 'text-sm font-extrabold text-emerald-400 mt-1';
+
+      document.getElementById('dashUpiId').innerText = st.upiId || '—';
+    }
+
+    function renderVisitors() {
+      const logs = (globalStore.activityLogs || []).slice(0, 50);
+      const tbody = document.getElementById('tblVisitorLogs');
+
+      if (!logs.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-zinc-500">No visitor activity recorded yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = logs.map(l => `
+        <tr class="hover:bg-dark-900/60 transition-colors">
+          <td class="p-3.5 font-bold text-white">${l.nickname || 'Store Visitor'}</td>
+          <td class="p-3.5 font-mono text-amber-400 font-bold">${l.uid && l.uid !== '—' ? l.uid : '<span class="text-zinc-600">—</span>'}</td>
+          <td class="p-3.5 font-mono text-emerald-400 font-semibold"><i class="fa-solid fa-network-wired text-[11px] text-zinc-500 mr-1.5"></i>${l.ip || '127.0.0.1'}</td>
+          <td class="p-3.5 text-zinc-300 text-xs">${l.country || 'Online'}</td>
+          <td class="p-3.5"><span class="px-2 py-1 bg-zinc-800 text-zinc-300 rounded-md text-[10px] font-semibold">${l.page || 'Homepage'}</span></td>
+          <td class="p-3.5 text-zinc-400 font-mono text-[11px]">${new Date(l.timestamp).toLocaleString('en-IN', {timeZone: 'Asia/Kolkata'})}</td>
+        </tr>
+      `).join('');
+    }
+
+    function filterProducts(cat) {
+      activeCategory = cat;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'text-white'));
+      const btn = document.getElementById('prodTab-' + cat);
+      if (btn) btn.classList.add('active');
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const all = globalStore.products || [];
+      const filtered = (activeCategory === 'all')
+        ? all
+        : all.filter(p => (p.category || 'diamonds') === activeCategory);
+      const tbody = document.getElementById('tblProducts');
+
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-zinc-500">No products in this category. Click Add New Product above.</td></tr>';
+        return;
+      }
+
+      const catBadges = {
+        diamonds: '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[10px] font-bold">💎 Diamonds</span>',
+        passes: '<span class="px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded text-[10px] font-bold">🎫 Pass</span>',
+        redeem: '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded text-[10px] font-bold">🎁 Redeem</span>'
+      };
+
+      tbody.innerHTML = filtered.map(p => `
+        <tr class="hover:bg-dark-900/60 transition-colors">
+          <td class="p-3.5">
+            <img src="${p.image || 'diamond_icon.png'}" class="w-9 h-9 object-contain rounded-lg bg-black/40 p-1 border border-zinc-800" onerror="this.src='/logo.png'" />
+          </td>
+          <td class="p-3.5">
+            <div class="font-extrabold text-white text-sm">${p.name}</div>
+            <div class="mt-0.5">${catBadges[p.category] || '<span class="text-zinc-500 text-[10px]">' + (p.category || 'diamonds') + '</span>'}</div>
+          </td>
+          <td class="p-3.5 line-through text-zinc-500 font-mono">₹${p.originalPrice || 0}</td>
+          <td class="p-3.5 font-black text-red-400 font-mono text-sm">
+            ₹${p.discountPrice || 0}
+            ${p.pendingPrice ? `<br/><span class="text-[9px] text-amber-400 font-normal">⏳ Pending ₹${p.pendingPrice}</span>` : ''}
+          </td>
+          <td class="p-3.5"><span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded text-[10px] font-bold">${p.bonus || p.badge || 'Offer'}</span></td>
+          <td class="p-3.5">
+            <span class="px-2 py-1 rounded-full text-[10px] font-extrabold ${p.status === 'disabled' ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}">
+              ${p.status || 'active'}
+            </span>
+          </td>
+          <td class="p-3.5 text-right space-x-2">
+            <button onclick="editProduct('${p.id}')" class="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-[11px] font-bold">Edit</button>
+            <button onclick="deleteProduct('${p.id}')" class="px-2.5 py-1.5 bg-red-950/60 hover:bg-red-900 text-red-400 rounded-lg text-[11px] font-bold">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderBanners() {
+      const banners = globalStore.banners || [];
+      const container = document.getElementById('bannersGrid');
+
+      if (!banners.length) {
+        container.innerHTML = '<div class="col-span-2 p-8 text-center text-zinc-500 glass-card rounded-2xl">No banners configured.</div>';
+        return;
+      }
+
+      container.innerHTML = banners.map(b => `
+        <div class="glass-card p-4 rounded-2xl border border-zinc-800 space-y-3">
+          <div class="aspect-video w-full rounded-xl overflow-hidden bg-black/60 relative border border-zinc-800">
+            <img src="${b.image || 'ad_banner1.jpg'}" class="w-full h-full object-cover" onerror="this.src='/free_fire_banner.jpg'" />
+          </div>
+          <div>
+            <h4 class="font-bold text-white text-sm">${b.title || 'Banner'}</h4>
+            <p class="text-xs text-zinc-400">${b.subtitle || ''}</p>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-zinc-800">
+            <span class="text-xs font-semibold ${b.active !== false ? 'text-emerald-400' : 'text-red-400'}">${b.active !== false ? 'Active' : 'Disabled'}</span>
+            <button onclick="deleteBanner('${b.id}')" class="px-3 py-1 bg-red-950/60 hover:bg-red-900 text-red-400 text-xs font-bold rounded-lg">Remove Banner</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function populateForms() {
+      const st = globalStore || {};
+      document.getElementById('inpUpiId').value = st.upiId || '';
+      document.getElementById('inpMerchantName').value = st.merchantName || '';
+      document.getElementById('inpApiEndpoint').value = st.apiEndpoint || '';
+      const chatOn = (st.supportChatEnabled !== undefined) ? (st.supportChatEnabled === true || st.supportChatEnabled === 'true') : true;
+      document.getElementById('chkSupportChat').checked = chatOn;
+
+      const mm = st.maintenanceMode || {};
+      document.getElementById('chkMaintenance').checked = Boolean(mm.active);
+      document.getElementById('inpMaintTitle').value = mm.title || '';
+      document.getElementById('inpMaintSubtitle').value = mm.subtitle || '';
+    }
+
+    async function sendAdminAction(action, payload) {
+      try {
+        const res = await fetch('/api/admin/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ action, ...payload })
+        });
+        if (res.status === 401) {
+          showToast('Session expired. Please log in again.', true);
+          document.getElementById('authScreen').classList.remove('hidden');
+          document.getElementById('adminApp').classList.add('hidden');
+          return;
+        }
+        const data = await res.json();
+        if (data.success) {
+          showToast('Saved successfully!');
+          fetchStoreData();
+        } else {
+          showToast(data.error || 'Save failed', true);
+        }
+      } catch {
+        showToast('Network error', true);
+      }
+    }
+
+    function saveUpiSettings(e) {
+      e.preventDefault();
+      const upiId = document.getElementById('inpUpiId').value.trim();
+      const merchantName = document.getElementById('inpMerchantName').value.trim();
+      sendAdminAction('update_full_store', { upiId, merchantName });
+    }
+
+    function saveApiSettings(e) {
+      e.preventDefault();
+      const apiEndpoint = document.getElementById('inpApiEndpoint').value.trim();
+      sendAdminAction('update_full_store', { apiEndpoint });
+    }
+
+    function toggleSupportChat(enabled) {
+      sendAdminAction('update_support_chat', { enabled });
+    }
+
+    function toggleSupportChatQuick() {
+      const current = (globalStore.supportChatEnabled !== undefined) ? (globalStore.supportChatEnabled === true || globalStore.supportChatEnabled === 'true') : true;
+      sendAdminAction('update_support_chat', { enabled: !current });
+    }
+
+    function toggleMaintenanceQuick() {
+      const mm = globalStore.maintenanceMode || {};
+      sendAdminAction('update_maintenance_mode', { active: !mm.active, title: mm.title, subtitle: mm.subtitle });
+    }
+
+    function saveMaintenanceMode(e) {
+      e.preventDefault();
+      const active = document.getElementById('chkMaintenance').checked;
+      const title = document.getElementById('inpMaintTitle').value.trim();
+      const subtitle = document.getElementById('inpMaintSubtitle').value.trim();
+      sendAdminAction('update_maintenance_mode', { active, title, subtitle });
+    }
+
+    function openProductModal(prodId = null) {
+      if (prodId) {
+        const p = (globalStore.products || []).find(x => x.id === prodId);
+        if (p) {
+          document.getElementById('prodModalTitle').innerText = 'Edit Product';
+          document.getElementById('pmId').value = p.id;
+          document.getElementById('pmName').value = p.name || '';
+          document.getElementById('pmCategory').value = p.category || 'diamonds';
+          document.getElementById('pmStatus').value = p.status || 'active';
+          document.getElementById('pmOriginalPrice').value = p.originalPrice || 0;
+          document.getElementById('pmDiscountPrice').value = p.discountPrice || 0;
+          document.getElementById('pmBonus').value = p.bonus || p.badge || '';
+          document.getElementById('pmImage').value = p.image || '';
+        }
+      } else {
+        document.getElementById('prodModalTitle').innerText = 'Add New Product';
+        document.getElementById('pmId').value = '';
+        document.getElementById('pmName').value = '';
+        document.getElementById('pmCategory').value = activeCategory;
+        document.getElementById('pmStatus').value = 'active';
+        document.getElementById('pmOriginalPrice').value = '';
+        document.getElementById('pmDiscountPrice').value = '';
+        document.getElementById('pmBonus').value = '';
+        document.getElementById('pmImage').value = 'diamond_icon.png';
+      }
+      document.getElementById('productModal').classList.remove('hidden');
+    }
+
+    function closeProductModal() { document.getElementById('productModal').classList.add('hidden'); }
+
+    function editProduct(prodId) { openProductModal(prodId); }
+
+    async function sendProductAction(action, payload) {
+      try {
+        const res = await fetch('/api/admin/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ action, ...payload })
+        });
+        if (res.status === 401) {
+          showToast('Session expired. Please log in again.', true);
+          document.getElementById('authScreen').classList.remove('hidden');
+          document.getElementById('adminApp').classList.add('hidden');
+          return;
+        }
+        const data = await res.json();
+        if (data.success) {
+          showToast('Product updated successfully!');
+          fetchStoreData();
+        } else {
+          showToast(data.error || 'Product update failed', true);
+        }
+      } catch {
+        showToast('Network error', true);
+      }
+    }
+
+    function saveProductModal(e) {
+      e.preventDefault();
+      const prod = {
+        id: document.getElementById('pmId').value || undefined,
+        name: document.getElementById('pmName').value.trim(),
+        category: document.getElementById('pmCategory').value,
+        status: document.getElementById('pmStatus').value,
+        originalPrice: parseFloat(document.getElementById('pmOriginalPrice').value) || 0,
+        discountPrice: parseFloat(document.getElementById('pmDiscountPrice').value) || 0,
+        bonus: document.getElementById('pmBonus').value.trim(),
+        badge: document.getElementById('pmBonus').value.trim(),
+        image: document.getElementById('pmImage').value.trim() || 'diamond_icon.png'
+      };
+      sendProductAction('save_product', { product: prod });
+      closeProductModal();
+    }
+
+    function deleteProduct(prodId) {
+      if (confirm('Delete this product permanently?')) {
+        sendProductAction('delete_product', { productId: prodId });
+      }
+    }
+
+    function openBannerModal() {
+      document.getElementById('bmId').value = '';
+      document.getElementById('bmTitle').value = '';
+      document.getElementById('bmSubtitle').value = '';
+      document.getElementById('bmImage').value = '';
+      document.getElementById('bannerModal').classList.remove('hidden');
+    }
+
+    function closeBannerModal() { document.getElementById('bannerModal').classList.add('hidden'); }
+
+    function saveBannerModal(e) {
+      e.preventDefault();
+      const banner = {
+        id: document.getElementById('bmId').value || undefined,
+        title: document.getElementById('bmTitle').value.trim(),
+        subtitle: document.getElementById('bmSubtitle').value.trim(),
+        image: document.getElementById('bmImage').value.trim(),
+        active: true
+      };
+      sendAdminAction('save_banner', { banner });
+      closeBannerModal();
+    }
+
+    function deleteBanner(bId) {
+      if (confirm('Delete this banner?')) {
+        sendAdminAction('delete_banner', { bannerId: bId });
+      }
+    }
+
+    function uploadImageFile(fileInput, targetInputId) {
+      const file = fileInput.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert('File size limit is 2MB'); return; }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Data = e.target.result;
+        try {
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ filename: file.name, data: base64Data })
+          });
+          const data = await res.json();
+          if (data.success && data.url) {
+            document.getElementById(targetInputId).value = data.url;
+            showToast('Image uploaded successfully!');
+          } else {
+            alert(data.error || 'Image upload failed');
+          }
+        } catch {
+          alert('Image upload request failed');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      
+      const sec = document.getElementById('sec-' + tabId);
+      const nav = document.getElementById('nav-' + tabId);
+      if (sec) sec.classList.remove('hidden');
+      if (nav) nav.classList.add('active');
+
+      const titles = {
+        dashboard: ['Dashboard Overview', 'Live website analytics and server control center'],
+        visitors: ['Visitor Analytics & Activity', 'Real-time traffic events without purchase tracking'],
+        products: ['Products Management', 'Manage Diamonds, Passes, and Redeem Codes'],
+        banners: ['Banner Management', 'Upload banner images directly from your device'],
+        upi: ['UPI Payment Settings', 'Change merchant UPI ID and payment configuration'],
+        api: ['API Settings', 'Configure player lookup API endpoint'],
+        support: ['Support Chat Control', 'Enable or disable support button on website'],
+        maintenance: ['Maintenance Mode', 'Control website maintenance overlay']
+      };
+
+      if (titles[tabId]) {
+        document.getElementById('pageTitle').innerText = titles[tabId][0];
+        document.getElementById('pageSubTitle').innerText = titles[tabId][1];
+      }
+    }
+
+    function toggleMobileNav() {
+      const menu = document.getElementById('navMenu');
+      menu.classList.toggle('hidden');
+      menu.classList.toggle('flex');
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toastAlert');
+      const text = document.getElementById('toastMsg');
+      text.innerText = msg;
+      toast.className = 'fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl text-white text-xs font-bold shadow-xl flex items-center gap-2 transition-all ' + (isError ? 'bg-red-600' : 'bg-emerald-600');
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    checkAuth();
+  </script>
+</body>
+</html>

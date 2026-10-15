@@ -4,26 +4,18 @@
     "tagline": "Trusted Diamond Top-up Platform"
   },
   "upi": {
-    "id": "sehrab88@fam",
-    "merchant_name": "Sehrab",
+    "id": "paytm.s2sr8jx@pty",
+    "merchant_name": "Garena Official Store",
     "amount": 32,
     "currency": "INR"
   },
   "whatsapp_channel": "https://whatsapp.com/channel/0029Vb5ECSQEAKWC3994hu2X",
-  "admin_password": "SEHRAB@8082263818",
+  "admin_password": "SEHRAB8082263818",
   "default_product": {
-    "original_price": 80,
-    "discount_price": 30,
-    "discount_percent": 60,
-    "diamonds": 100,
-    "image": ""
-  },
-  "firebase": {
-    "apiKey": "YOUR_API_KEY",
-    "authDomain": "YOUR_PROJECT.firebaseapp.com",
-    "projectId": "YOUR_PROJECT_ID",
-    "storageBucket": "YOUR_PROJECT.appspot.com",
-    "messagingSenderId": "YOUR_SENDER_ID",
-    "appId": "YOUR_APP_ID"
+    "original_price": 150,
+    "discount_price": 99,
+    "discount_percent": 34,
+    "diamonds": 150,
+    "image": "diamond_icon.png"
   }
 }

@@ -45,7 +45,7 @@ const server = http.createServer((req, res) => {
       return;
     }
 
-    const targetUrl = `https://ob54-info-by-najmi-admin.vercel.app/info?uid=${encodeURIComponent(uidParam)}`;
+    const targetUrl = `https://sehrab-api.vercel.app/api/v1/info?region=IND&uid=${encodeURIComponent(uidParam)}`;
     const https = require('https');
     https.get(targetUrl, (apiRes) => {
       let rawData = '';
@@ -63,6 +63,13 @@ const server = http.createServer((req, res) => {
       res.writeHead(502, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Proxy connection to OB54 API failed: ' + err.message }));
     });
+    return;
+  }
+
+  // API Route for /api/admin-store
+  if (req.url.startsWith('/api/admin-store')) {
+    const adminStoreHandler = require('./api/admin-store.js');
+    adminStoreHandler(req, res);
     return;
   }
 

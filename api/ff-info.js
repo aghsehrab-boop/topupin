@@ -1,4 +1,8 @@
-﻿const https = require('https');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
+const STORE_FILE = path.join('/tmp', 'admin_store.json');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,7 +18,25 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'UID parameter is required' });
   }
 
-  const targetUrl = `https://ob54-info-by-najmi-admin.vercel.app/info?uid=${encodeURIComponent(uid)}`;
+  let baseUrl = 'https://sehrab-api.vercel.app/api/v1/info?region=IND&uid=';
+  try {
+    if (fs.existsSync(STORE_FILE)) {
+      const data = fs.readFileSync(STORE_FILE, 'utf8');
+      if (data && data.trim().startsWith('{')) {
+        const parsed = JSON.parse(data);
+        if (parsed.apiEndpoint) baseUrl = parsed.apiEndpoint;
+      }
+    }
+  } catch (e) {}
+
+  let targetUrl;
+  if (baseUrl.includes('sehrab-api.vercel.app')) {
+    targetUrl = `https://sehrab-api.vercel.app/api/v1/info?region=IND&uid=${encodeURIComponent(uid)}`;
+  } else if (baseUrl.includes('danger-player-info.vercel.app') && !baseUrl.includes('key=')) {
+    targetUrl = `https://danger-player-info.vercel.app/accinfo?key=DANGERxINFO&uid=${encodeURIComponent(uid)}`;
+  } else {
+    targetUrl = baseUrl.endsWith('=') ? `${baseUrl}${encodeURIComponent(uid)}` : `${baseUrl}${encodeURIComponent(uid)}`;
+  }
 
   return new Promise((resolve) => {
     https.get(targetUrl, (apiRes) => {

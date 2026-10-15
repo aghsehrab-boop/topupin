@@ -1,59 +1,47 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/ff-info.js",
-      "use": "@vercel/node"
+      "source": "/admin",
+      "destination": "/admin/index.html"
     },
     {
-      "src": "index.html",
-      "use": "@vercel/static"
+      "source": "/admin/(.*)",
+      "destination": "/admin/index.html"
     },
     {
-      "src": "admin.html",
-      "use": "@vercel/static"
+      "source": "/api/products",
+      "destination": "/api/products.js"
     },
     {
-      "src": "dashboard.html",
-      "use": "@vercel/static"
+      "source": "/api/admin/products",
+      "destination": "/api/admin/products.js"
     },
     {
-      "src": "payment.html",
-      "use": "@vercel/static"
+      "source": "/api/admin/config",
+      "destination": "/api/admin-config.js"
     },
     {
-      "src": "style.css",
-      "use": "@vercel/static"
+      "source": "/api/admin-auth",
+      "destination": "/api/admin-auth.js"
     },
     {
-      "src": "*.png",
-      "use": "@vercel/static"
+      "source": "/api/upload",
+      "destination": "/api/upload.js"
     },
     {
-      "src": "*.jpg",
-      "use": "@vercel/static"
+      "source": "/api/img",
+      "destination": "/api/img.js"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/api/ff-info",
-      "dest": "/api/ff-info.js"
-    },
-    {
-      "src": "/admin",
-      "dest": "/admin.html"
-    },
-    {
-      "src": "/dashboard",
-      "dest": "/dashboard.html"
-    },
-    {
-      "src": "/payment",
-      "dest": "/payment.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "no-referrer" }
+      ]
     }
   ]
 }

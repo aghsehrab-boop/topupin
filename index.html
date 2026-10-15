@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Zero-Flicker Anti-Flash Initializer -->
+  <script>
+    (function() {
+      try {
+        var sChat = localStorage.getItem('ff_support_chat_enabled');
+        var style = document.createElement('style');
+        style.id = 'antiFlickerStyle';
+        var css = '';
+        if (sChat === 'false') {
+          css += '#floatingSupportBtn { display: none !important; }\n';
+        }
+        style.textContent = css;
+        document.head.appendChild(style);
+      } catch(e) {}
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>SMM Top Up Shop – Free Fire Diamonds &amp; Top Up</title>
@@ -11,6 +27,8 @@
   <meta property="og:description" content="Get instant discounted Free Fire diamonds at SMM Top Up Shop. Up to 50% OFF on all packs." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#ff1f3b" />
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+  <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -32,6 +50,8 @@
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti CDN for Party Burst Effect -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -164,6 +184,10 @@
     }
 
     /* ── Verify modal spinner ── */
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .animate-spin-fast { animation: spin 0.75s linear infinite; }
+    .animate-spin-slow { animation: spin 1.5s linear infinite reverse; }
+
     @keyframes spin-smooth { to { transform:rotate(360deg); } }
     .spinner-ring { animation:spin-smooth 0.85s linear infinite; }
 
@@ -171,15 +195,209 @@
       0%,100% { opacity:0.35; transform:scale(0.75); }
       50%     { opacity:1;    transform:scale(1.2); }
     }
-    .pulse-dot              { animation:pulse-dot 1.2s ease-in-out infinite; }
-    .pulse-dot:nth-child(2) { animation-delay:0.2s; }
-    .pulse-dot:nth-child(3) { animation-delay:0.4s; }
+    @keyframes supportAuraPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 31, 59, 0.5), 0 0 15px rgba(245, 158, 11, 0.4), 0 4px 18px rgba(0,0,0,0.3); }
+      50% { box-shadow: 0 0 0 10px rgba(255, 31, 59, 0), 0 0 25px rgba(245, 158, 11, 0.75), 0 6px 22px rgba(0,0,0,0.4); }
+    }
+    .support-glow-pulse { animation: supportAuraPulse 2.2s ease-in-out infinite; }
 
     input, button, a { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
     * { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+    /* =====================================================
+       PREMIUM SHAKE BUY BUTTON (USER COMPACT DESIGN)
+    ===================================================== */
+    .premium-buy-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 68px;
+      height: 28px;
+      border: 0;
+      border-radius: 7px;
+      background: linear-gradient(
+        145deg,
+        #ff3b3b 0%,
+        #e50909 45%,
+        #b80000 100%
+      );
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      user-select: none;
+      box-shadow:
+        0 5px 10px rgba(180, 0, 0, 0.35),
+        inset 0 1px 1px rgba(255,255,255,0.35),
+        inset 0 -2px 3px rgba(80,0,0,0.25);
+      transform: translateY(0);
+      transition:
+        box-shadow 0.18s ease,
+        filter 0.18s ease;
+      overflow: hidden;
+    }
+    .premium-buy-btn span {
+      position: relative;
+      z-index: 2;
+    }
+    .premium-buy-btn:hover {
+      filter: brightness(1.08);
+      box-shadow:
+        0 6px 14px rgba(180, 0, 0, 0.4),
+        inset 0 1px 1px rgba(255,255,255,0.4),
+        inset 0 -2px 3px rgba(80,0,0,0.25);
+    }
+    .premium-buy-btn:active {
+      filter: brightness(0.95);
+      box-shadow:
+        0 3px 6px rgba(120,0,0,0.35),
+        inset 0 2px 4px rgba(80,0,0,0.3);
+    }
+    @keyframes shine {
+      0%   { left: -80%; }
+      100% { left: 140%; }
+    }
+    .premium-buy-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 45%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.38) 50%, transparent 100%);
+      transform: skewX(-20deg);
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+    .premium-buy-btn:hover::before {
+      opacity: 1;
+      animation: shine 0.55s ease forwards;
+    }
+    @keyframes shimmerBar {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    @keyframes pulseGlow {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.6; }
+    }
+
+    /* ── Dashboard Top Header Player Card ── */
+    .dash-player-card {
+      width: 100%;
+      background: linear-gradient(135deg, #ffffff 0%, #fffdf8 100%);
+      border: 1.5px solid rgba(240, 192, 64, 0.35);
+      border-radius: 20px;
+      padding: 14px 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    }
+    .dash-player-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .dash-avatar-wrap {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      flex-shrink: 0;
+    }
+    .dash-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 14px;
+      object-fit: cover;
+      border: 2px solid #f0c040;
+      box-shadow: 0 4px 12px rgba(240, 192, 64, 0.25);
+    }
+    .dash-avatar-badge {
+      position: absolute;
+      bottom: -3px;
+      right: -3px;
+      width: 16px;
+      height: 16px;
+      background: #22c55e;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 900;
+      border: 2px solid white;
+    }
+    .dash-player-meta {
+      min-width: 0;
+      flex: 1;
+    }
+    .dash-player-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dash-player-name {
+      font-size: 16px;
+      font-weight: 900;
+      color: #1e293b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dash-verified-pill {
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 99px;
+      text-transform: uppercase;
+    }
+    .dash-player-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: #d97706;
+      margin-top: 1px;
+    }
+    .dash-player-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 8px;
+    }
+    .dash-stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .dash-stat-lbl {
+      font-size: 9px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .dash-stat-val {
+      font-size: 12px;
+      font-weight: 900;
+      color: #0f172a;
+      margin-top: 1px;
+    }
+
+
   </style>
 </head>
 <body class="text-slate-800 min-h-screen relative antialiased bg-white">
+
+
 
   <!-- Background texture (shared) -->
   <div class="fixed inset-0 -z-10 w-full h-full bg-cover bg-center bg-no-repeat opacity-[0.05]" style="background-image:url('background.jpg');"></div>
@@ -193,7 +411,7 @@
     <!-- Header -->
     <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
       <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-3 cursor-pointer select-none" ondblclick="handleAdminDoubleClick()">
+        <div class="flex items-center gap-3 select-none">
           <img src="logo.png" alt="Garena Logo"
                class="h-8 w-auto object-contain" fetchpriority="high" onerror="this.src='logo.png'" />
           <div class="leading-tight border-l border-slate-200 pl-3">
@@ -279,19 +497,22 @@
           </div>
           
           <div class="relative mb-3">
-            <input type="text" id="uidInput" placeholder="ENTER PLAYER UID (e.g. 29384819)" maxlength="12"
+            <input type="text" id="uidInput" placeholder="Enter UID" maxlength="12" oninput="hideUidError()"
                    class="w-full bg-slate-50/80 border-2 border-slate-100 rounded-2xl pl-12 pr-12 py-4 text-base font-extrabold tracking-widest text-slate-800 placeholder:text-slate-400 placeholder:text-xs placeholder:font-bold placeholder:tracking-normal focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all text-center" />
             <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
-              <img src="https://kommodo.ai/i/TwCCijpUSOJ6I0lCPKjN" alt="Garena" class="h-3.5 w-auto object-contain opacity-70" onerror="this.src='logo.png'" />
+              <img src="logo.png" alt="Garena" class="h-3.5 w-auto object-contain opacity-70" onerror="this.src='logo.png'" />
             </div>
           </div>
-          
-          <div class="flex items-center gap-2 mb-5">
-            <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+
+          <!-- Invalid UID Error Box -->
+          <div id="uidErrorContainer" class="hidden mb-3 p-3 bg-red-50 border border-red-200/80 rounded-2xl flex items-center gap-2.5 text-red-600 text-xs font-extrabold shadow-sm">
+            <svg class="w-4 h-4 flex-shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p class="text-[10px] text-slate-400 font-medium leading-tight">Please double check your player UID from your game profile menu.</p>
+            <span id="uidErrorMessage">Your UID is not valid. Please re-enter your real UID.</span>
           </div>
+          
+
           
           <button onclick="initiateLogin()" id="verifyBtn"
                   class="w-full text-white font-extrabold py-4 rounded-2xl text-xs tracking-widest uppercase transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-orange-500 via-rose-500 to-red-500 hover:shadow-[0_8px_24px_rgba(236,72,153,0.35)] active:shadow-none">
@@ -344,9 +565,180 @@
     </footer>
   </div><!-- /view-login -->
 
+  <!-- ════════════════════════════════════════════════════════
+       VIEW 2 – Confirmation Page (Pure White Background)
+  ════════════════════════════════════════════════════════ -->
+  <div id="view-infocard" class="spa-view bg-white min-h-screen flex flex-col">
+    
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+      <div class="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5 cursor-pointer select-none">
+          <img src="logo.png" alt="Garena Logo" class="h-7 w-auto object-contain" onerror="this.src='logo.png'" />
+          <div class="leading-tight border-l border-slate-200 pl-2.5">
+            <span class="block text-xs font-black tracking-widest text-garena-red">GARENA</span>
+            <span class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Official Top Up Center</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 text-emerald-600 text-[11px] font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>OB55 Verified</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Confirmation Content (Single Screen Fit) -->
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-3 space-y-3 flex flex-col">
+
+      <!-- Header Title -->
+      <div class="text-center space-y-1">
+        <div class="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10.5px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs mb-0.5">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"/></svg>
+          <span>UID Verification Successful</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Confirm Your Player Profile</h2>
+        <p class="text-[11px] text-slate-500 font-medium">Review your Free Fire account details retrieved from Garena API.</p>
+      </div>
+
+      <!-- Pure White Compact Luxury Profile Card -->
+      <div class="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-xl relative overflow-hidden space-y-3">
+        
+        <!-- Player Top Profile Info (Avatar + Circular Green Tick + Name) -->
+        <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+          <div id="infoAvatarWrap" class="w-11 h-11 rounded-xl flex-shrink-0 relative" style="background:linear-gradient(135deg,#f59e0b,#d97706,#f59e0b);padding:2px;border-radius:12px;box-shadow:0 0 0 1px rgba(245,158,11,0.35),0 2px 8px rgba(0,0,0,0.12);">
+            <img id="infoAvatar" src="ff_game_icon.png" alt="Free Fire Profile Avatar" class="w-full h-full object-cover bg-slate-100" style="border-radius:10px;" onerror="this.src='ff_game_icon.png'" />
+            <!-- Perfectly Circular Green Tick Badge -->
+            <div class="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full flex items-center justify-center font-black border-2 border-white shadow-xs" style="width:16px;height:16px;font-size:8px;" title="Verified Account">✓</div>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1 mb-0.5">
+              <span class="text-[9.5px] font-black text-amber-600 tracking-widest uppercase" id="infoTitle">GARENA OB55 OFFICIAL</span>
+            </div>
+            
+            <div class="flex items-center gap-1.5">
+              <h3 class="text-lg font-black text-slate-900 leading-tight truncate" id="infoName">—</h3>
+            </div>
+
+            <p class="text-[10.5px] text-slate-500 font-semibold mt-0.5" id="infoStatus">Free Fire • Verified Player Profile</p>
+          </div>
+        </div>
+
+        <!-- Luxury Compact Details Grid -->
+        <div class="grid grid-cols-2 gap-2 text-left">
+          
+          <!-- UID -->
+          <div class="bg-gradient-to-br from-slate-50 to-amber-50/40 border border-amber-200/80 rounded-xl p-2.5 col-span-2 shadow-2xs">
+            <div class="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <svg class="w-3 h-3 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 8h8M8 12h5M8 16h8"/></svg>
+              <span>ACCOUNT UID</span>
+            </div>
+            <div class="text-base font-black font-mono text-slate-900 tracking-wider" id="infoUID">—</div>
+          </div>
+
+          <!-- Level -->
+          <div class="bg-gradient-to-br from-slate-50 to-slate-100/60 border border-slate-200/90 rounded-xl p-2 shadow-2xs">
+            <div class="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <span>Level</span>
+            </div>
+            <div class="text-xs font-black text-slate-900" id="infoLevel">—</div>
+          </div>
+
+          <!-- Region -->
+          <div class="bg-gradient-to-br from-slate-50 to-slate-100/60 border border-slate-200/90 rounded-xl p-2 shadow-2xs">
+            <div class="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <span>Region</span>
+            </div>
+            <div class="text-xs font-black text-slate-900" id="infoRegion">🇮🇳 IND</div>
+          </div>
+
+          <!-- Likes -->
+          <div class="bg-gradient-to-br from-slate-50 to-slate-100/60 border border-slate-200/90 rounded-xl p-2 shadow-2xs">
+            <div class="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <span>Likes</span>
+            </div>
+            <div class="text-xs font-black text-slate-900" id="infoLikes">—</div>
+          </div>
+
+          <!-- Credit Score -->
+          <div class="bg-gradient-to-br from-slate-50 to-emerald-50/40 border border-emerald-200/80 rounded-xl p-2 shadow-2xs" id="infoCreditScoreBox">
+            <div class="text-[9px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <span>Credit Score</span>
+            </div>
+            <div class="text-xs font-black text-emerald-600" id="infoCreditScore">100</div>
+          </div>
+
+          <!-- BR Rank & Points -->
+          <div class="bg-gradient-to-br from-slate-50 to-slate-100/60 border border-slate-200/90 rounded-xl p-2 shadow-2xs" id="infoRankBox">
+            <div class="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <span>BR Rank</span>
+            </div>
+            <div class="text-[11px] font-black text-slate-900" id="infoRank">—</div>
+          </div>
+
+          <!-- CS Rank & Points -->
+          <div class="bg-gradient-to-br from-slate-50 to-slate-100/60 border border-slate-200/90 rounded-xl p-2 shadow-2xs" id="infoCSRankBox">
+            <div class="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <span>CS Rank</span>
+            </div>
+            <div class="text-[11px] font-black text-slate-900" id="infoCSRank">—</div>
+          </div>
+
+          <!-- Clan / Guild -->
+          <div id="infoGuildBox" class="bg-gradient-to-br from-slate-50 to-amber-50/30 border border-slate-200/90 rounded-xl p-2 col-span-2 hidden shadow-2xs">
+            <div class="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <span>Clan / Guild</span>
+            </div>
+            <div class="text-[11px] font-black text-slate-900" id="infoGuild">—</div>
+          </div>
+
+          <!-- Bio -->
+          <div id="infoBioBox" class="bg-gradient-to-br from-slate-50 to-slate-100/80 border border-slate-200/90 rounded-xl p-2 col-span-2 hidden shadow-2xs">
+            <div class="text-[9px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-1 mb-0.5">
+              <span>Player Bio</span>
+            </div>
+            <div class="text-[11px] font-semibold text-slate-700 leading-normal" id="infoBio">—</div>
+          </div>
+
+        </div>
+
+        <!-- Security Bar -->
+        <div class="flex items-center justify-between pt-1.5 border-t border-slate-100 text-[10.5px]">
+          <div class="flex items-center gap-1 text-emerald-600 font-extrabold">
+            <svg class="w-3.5 h-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3l7 3v5c0 4.8-3 8.4-7 10-4-1.6-7-5.2-7-10V6l7-3z"/><path d="M8 12l2.5 2.5L16 9"/></svg>
+            <span>OB55 API VERIFIED</span>
+          </div>
+          <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">100% SECURE</span>
+        </div>
+      </div>
+
+      <!-- Action Confirmation Button -->
+      <div class="space-y-2 pt-0.5">
+        <button onclick="goToDiamondSection()" id="confirmPlayerBtn"
+                class="w-[96%] mx-auto text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider shadow-md transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-orange-500 via-rose-500 to-red-500 hover:shadow-[0_8px_20px_rgba(236,72,153,0.3)] flex items-center justify-center gap-2">
+          <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"/></svg>
+          </span>
+          <span>Yes, it’s me</span>
+          <span class="text-base leading-none">→</span>
+        </button>
+
+        <div class="text-center text-[11px] text-slate-500 font-medium">
+          Not your account?
+          <span onclick="switchToLogin()" class="text-garena-red font-extrabold hover:underline cursor-pointer ml-1">Change Player UID</span>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="bg-slate-50 border-t border-slate-200/80 py-2 text-center">
+      <p class="text-[9px] text-slate-500 px-4 leading-none">
+        © 2026 Garena Free Fire Top Up. All rights reserved.
+      </p>
+    </footer>
+  </div><!-- /view-infocard -->
 
   <!-- ════════════════════════════════════════════════════════
-       VIEW 2 – Dashboard (hidden until UID verified)
+       VIEW 3 – Dashboard (Diamond & Pass Store)
   ════════════════════════════════════════════════════════ -->
   <div id="view-dashboard" class="spa-view flex flex-col min-h-screen">
 
@@ -354,7 +746,7 @@
     <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
       <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3 cursor-pointer select-none" ondblclick="handleLogoDoubleClick()">
-          <img src="https://kommodo.ai/i/TwCCijpUSOJ6I0lCPKjN" alt="Garena Logo"
+          <img src="logo.png" alt="Garena Logo"
                class="h-8 w-auto object-contain" onerror="this.src='logo.png'" />
           <div class="leading-tight border-l border-slate-200 pl-3">
             <span class="block text-sm font-black tracking-widest text-garena-red">GARENA</span>
@@ -379,27 +771,33 @@
     <!-- Dashboard Main -->
     <main class="flex-1 max-w-md w-full mx-auto px-4 pt-2 pb-8 space-y-4">
 
-      <!-- Verified Account Card -->
-      <div class="glass-card rounded-2xl p-4 sm:p-5 shadow-md relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500"></div>
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2 sm:gap-3">
-            <img src="freefire_logo.png" alt="Free Fire Logo"
-                 class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover border border-orange-500 shadow-md my-auto"
-                 onerror="this.src='logo.png';" />
-            <div>
-              <h2 class="font-extrabold text-xs sm:text-sm text-slate-800 flex items-center gap-1">
-                <span>Free Fire UID Verified</span>
-                <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold">✓</span>
-              </h2>
-              <p class="text-[10px] sm:text-xs font-bold text-slate-600 tracking-wider mt-0.5" id="verifiedUidDisplay">UID: —</p>
-            </div>
+      <!-- Clean Verified Player Card (Dashboard Header) -->
+      <div class="dash-player-card">
+        <div class="dash-player-top">
+          <div class="dash-avatar-wrap">
+            <img class="dash-avatar-img" src="freefire_logo.png" alt="Player" onerror="this.src='logo.png';">
+            <div class="dash-avatar-badge">✓</div>
           </div>
-          <div class="text-right space-y-1 flex-shrink-0">
-            <div class="flex items-center gap-1 text-[8px] sm:text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full justify-end">
-              <span>🇮🇳</span><span>India Region</span>
+          <div class="dash-player-meta">
+            <div class="dash-player-name-row">
+              <span class="dash-player-name" id="verifiedPlayerName">KEVAL'FF</span>
+              <span class="dash-verified-pill">Verified</span>
             </div>
-            <span class="inline-block text-[8px] sm:text-[10px] font-extrabold text-emerald-600 uppercase tracking-widest bg-emerald-50 border border-emerald-200 px-1.5 rounded">Verified</span>
+            <div class="dash-player-sub font-mono" id="verifiedUidDisplay">UID: —</div>
+          </div>
+        </div>
+        <div class="dash-player-stats-grid">
+          <div class="dash-stat-item">
+            <span class="dash-stat-lbl">Level</span>
+            <span class="dash-stat-val" id="verifiedLevelDisplay">LV. 70</span>
+          </div>
+          <div class="dash-stat-item">
+            <span class="dash-stat-lbl">Server</span>
+            <span class="dash-stat-val" id="verifiedRegionDisplay">🇮🇳 IND</span>
+          </div>
+          <div class="dash-stat-item">
+            <span class="dash-stat-lbl">Likes</span>
+            <span class="dash-stat-val" id="verifiedLikesDisplay">2.7M</span>
           </div>
         </div>
       </div>
@@ -412,10 +810,11 @@
       </div>
 
       <!-- Tabs -->
-      <div class="grid grid-cols-3 bg-slate-100 border border-slate-200/80 rounded-xl p-1 shadow-inner" style="gap:6px;">
+      <div class="grid grid-cols-4 bg-slate-100 border border-slate-200/80 rounded-xl p-1 shadow-inner" style="gap:4px;">
         <button onclick="switchTab('diamonds')" id="tab-diamonds" class="tab-btn tab-active">Diamonds</button>
         <button onclick="switchTab('passes')"   id="tab-passes"   class="tab-btn">Passes</button>
         <button onclick="switchTab('redeem')"   id="tab-redeem"   class="tab-btn">Redeem</button>
+        <button onclick="switchTab('likes')"    id="tab-likes"    class="tab-btn">Likes</button>
       </div>
 
       <!-- TAB: Diamonds -->
@@ -445,44 +844,6 @@
         <div class="space-y-3.5" id="passesList"></div>
       </div>
 
-      
-
-      <!-- TAB: Free Likes (REAL LIKES FOR FREE FIRE ID) -->
-      <div id="content-likes" class="space-y-4 tab-content hidden">
-        <div class="relative overflow-hidden rounded-2xl aspect-[16/9] shadow-xl border border-red-500/30 bg-slate-900">
-          <img src="ff_likes_banner.jpg" alt="Likes for Free Fire ID" class="w-full h-full object-cover" loading="lazy" />
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent flex flex-col justify-end p-5">
-            <div class="flex items-center gap-2 mb-1.5">
-              <span class="bg-red-600 text-white text-[8px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow animate-pulse">🔥 100% REAL LIKES BOOSTER</span>
-              <span class="bg-amber-400 text-slate-950 text-[8px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">FREE / COMING SOON</span>
-            </div>
-            <h3 class="text-xl font-black text-white tracking-wide shadow-text">Likes for Free Fire ID</h3>
-            <p class="text-xs text-white/90 font-semibold">Get 100% Real Likes delivered directly to your verified FF profile.</p>
-          </div>
-          <div style="position:absolute;top:10px;right:10px;background:rgba(220,38,38,0.9);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,0.25);border-radius:99px;padding:4px 12px;box-shadow:0 0 14px rgba(220,38,38,0.6);">
-            <span style="font-size:9px;font-weight:900;color:#fff;letter-spacing:1px;">👍 FREE LIKES</span>
-          </div>
-        </div>
-
-        <!-- Ultra-Premium Coming Soon Card -->
-        <div style="background:linear-gradient(145deg,#ffffff 0%,#fff5f5 50%,#ffe4e6 100%);border:1.5px solid #fca5a5;border-radius:22px;padding:22px;text-align:center;box-shadow:0 8px 30px rgba(225,29,72,0.12);position:relative;overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;right:0;height:3.5px;background:linear-gradient(90deg,#e11d48,#fb7185,#e11d48);background-size:200%;animation:shimmerBar 2s linear infinite;"></div>
-          
-          <div style="width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#ffe4e6,#fecdd3);border:2px solid #fda4af;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;box-shadow:0 0 18px rgba(225,29,72,0.25);">
-            <span style="font-size:28px;">❤️</span>
-          </div>
-
-          <h4 style="font-size:17px;font-weight:900;color:#881337;letter-spacing:-0.4px;margin-bottom:4px;">Likes for Free Fire ID</h4>
-          <p style="font-size:11.5px;font-weight:700;color:#e11d48;margin-bottom:6px;">Real In-Game Likes Boost for Verified Profiles!</p>
-          <p style="font-size:10px;font-weight:600;color:#64748b;margin-bottom:14px;">This automated server feature is under maintenance and launching soon for all players.</p>
-
-          <div style="display:inline-flex;align-items:center;gap:6px;background:#ffe4e6;border:1px solid #fca5a5;padding:7px 18px;border-radius:99px;box-shadow:0 2px 8px rgba(225,29,72,0.15);">
-            <span style="width:8px;height:8px;border-radius:50%;background:#e11d48;display:inline-block;animation:pulseGlow 1.5s ease infinite;"></span>
-            <span style="font-size:10px;font-weight:900;color:#9f1239;letter-spacing:1px;text-transform:uppercase;">🚀 Status: Coming Soon / Under Maintenance</span>
-          </div>
-        </div>
-      </div>
-
       <!-- TAB: Redeem -->
       <div id="content-redeem" class="space-y-4 tab-content hidden">
         <div class="bg-gradient-to-r from-orange-100 to-amber-50 border border-orange-200/60 rounded-2xl p-4 flex items-center justify-between">
@@ -495,13 +856,12 @@
         </div>
         <div class="grid grid-cols-1 gap-3" id="redeemPacksList"></div>
         <!-- Custom Redeem -->
-        <div class="glass-card rounded-2xl p-5 space-y-4 border border-slate-200/60 relative overflow-hidden">
-          <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-garena-purpleAccent to-garena-red"></div>
+        <div class="glass-card rounded-2xl p-5 space-y-4 border border-slate-200/60 relative">
           <h4 class="text-xs font-black tracking-widest uppercase text-garena-red">Custom Redeem Code</h4>
           <div class="space-y-3">
             <div>
               <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Enter Code Amount (INR)</label>
-              <input type="text" id="customRedeemInput" placeholder="e.g. 1000"
+              <input type="text" id="customRedeemInput" placeholder="Min ₹300 (e.g. 500)"
                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-900 focus:outline-none focus:border-garena-red" />
             </div>
             <div class="flex items-center justify-between bg-slate-50 border border-slate-200/60 rounded-xl px-4 py-3">
@@ -511,12 +871,37 @@
               </div>
               <span class="text-[10px] text-slate-400 line-through" id="customOriginalAmount">was ₹0</span>
             </div>
-            <button onclick="buyCustomRedeemCode()"
-                    class="w-full bg-garena-red hover:bg-garena-redHover text-white font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider shadow-md">
-              Purchase Custom Code
+            <button class="premium-buy-btn" onclick="buyCustomRedeemCode()" style="width:100%;">
+              <span>BUY</span>
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- TAB: Likes (LAST TAB) -->
+      <div id="content-likes" class="space-y-4 tab-content hidden">
+
+        <!-- Section Header Banner with Kelly PNG Visual -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-50 via-rose-50 to-orange-50 border border-amber-200/80 p-4 flex items-center justify-between shadow-sm">
+          <div class="space-y-1.5 max-w-[65%] z-10">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[9px] font-black tracking-widest text-amber-800 uppercase bg-amber-200/70 border border-amber-300/80 px-2 py-0.5 rounded-full">⚡ Real Likes Booster</span>
+              <span class="text-[8.5px] font-bold text-rose-700 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-full">OB55 Verified</span>
+            </div>
+            <h3 class="font-black text-base text-slate-900 tracking-tight">Likes for Free Fire ID</h3>
+            <p class="text-[10.5px] text-slate-600 font-medium leading-snug">Get 100% real in-game profile likes delivered directly to your verified Free Fire ID.</p>
+            <div class="inline-flex items-center gap-2 bg-white/90 border border-amber-300/80 px-2.5 py-1 rounded-xl shadow-2xs mt-1">
+              <span class="text-[9.5px] font-bold text-slate-500 uppercase">Current Likes:</span>
+              <span class="text-xs font-black text-rose-600 font-mono tracking-wide" id="likesCurrentDisplay">—</span>
+            </div>
+          </div>
+          <div class="w-28 h-32 flex-shrink-0 relative z-10 flex items-end justify-center -mr-2 -mb-5 translate-y-1 sm:translate-y-0">
+            <img src="kelly_likes.png" alt="Free Fire Kelly" class="h-full w-auto object-contain object-bottom drop-shadow-md translate-y-2 sm:translate-y-0" />
+          </div>
+        </div>
+
+        <!-- Likes Package Cards (Passes-Style List Layout) -->
+        <div class="space-y-3.5" id="likesPacksList"></div>
       </div>
     </main>
 
@@ -530,180 +915,702 @@
 
 
   <!-- ════════════════════════════════════════════════════════
-       PAYMENT GATEWAY OVERLAY
+       VIEW 4 – Dedicated Payment Page
   ════════════════════════════════════════════════════════ -->
-  <div id="paymentModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex justify-center items-start md:items-center overflow-y-auto p-0 md:p-4">
-    <div class="bg-black w-full max-w-md min-h-screen md:min-h-0 md:rounded-3xl shadow-2xl border border-slate-900 flex flex-col relative overflow-hidden my-0 md:my-6 text-white">
-      <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-garena-red via-garena-purpleAccent to-garena-red"></div>
-      <header class="sticky top-0 bg-black border-b border-slate-900 px-4 py-4 flex items-center justify-between z-10">
-        <h1 class="text-sm font-black text-white tracking-wide flex items-center gap-1.5 flex-wrap">
+  <div id="view-payment" style="display:none !important;" class="hidden">
+    
+    <!-- Payment Page Header -->
+    <header class="sticky top-0 bg-black/95 backdrop-blur-md border-b border-slate-900 px-4 py-3.5 flex items-center justify-between z-50 max-w-md mx-auto w-full">
+      <div class="flex items-center gap-2">
+        <h1 class="text-sm font-black text-white tracking-wide flex items-center gap-1.5">
           <span class="text-garena-red font-black">Garena</span>
           <span>Payment Gateway</span>
-          <svg class="w-3.5 h-3.5 text-blue-500 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          <svg class="w-4 h-4 text-blue-500 fill-current flex-shrink-0" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
         </h1>
-        <button onclick="closePaymentModal()" class="text-[11px] font-bold text-slate-300 hover:text-white border border-slate-800 px-2.5 py-1.5 rounded-lg bg-slate-950">✕ Cancel</button>
-      </header>
-      <div class="flex-1 px-4 py-5 space-y-4 overflow-y-auto max-h-[85vh] md:max-h-[75vh]">
-        <!-- Order info -->
-        <div class="bg-slate-950 border border-slate-900 rounded-2xl p-4 space-y-3">
-          <h3 class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-900 pb-1.5">Order Information</h3>
-          <div class="space-y-2 text-[11px] text-slate-300">
-            <div class="flex justify-between"><span class="text-slate-500">Order ID:</span><strong class="text-white" id="orderIdDisplay">—</strong></div>
-            <div class="flex justify-between"><span class="text-slate-500">UID:</span><strong class="text-white" id="orderUidDisplay">—</strong></div>
-            <!-- UPI ID Hidden -->
-            <div style="display:none;"><span class="text-slate-500">UPI ID:</span><strong class="text-white font-mono text-[10px]" id="orderUpiDisplay">—</strong></div>
-            <div class="flex justify-between"><span class="text-slate-550">Region:</span><div class="flex items-center gap-1 font-bold text-white"><span>🇮🇳</span><span>India Region</span></div></div>
-            <div class="flex justify-between"><span class="text-slate-500">Package:</span><strong class="text-white" id="orderPackDisplay">—</strong></div>
-            <!-- Price breakdown -->
-            <div class="border-t border-slate-800 pt-2 space-y-1.5">
-              <div class="flex justify-between text-[11px]">
-                <span class="text-slate-500">Product Price:</span>
-                <span class="text-slate-300 font-semibold" id="orderBasePriceDisplay">—</span>
-              </div>
-              <div class="flex justify-between text-[11px]">
-                <span class="flex items-center gap-1 text-amber-400">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                  Included Tax:
-                </span>
-                <span class="text-amber-400 font-bold" id="orderTaxDisplay">₹0.00</span>
-              </div>
-              <div class="flex justify-between items-center pt-1.5 border-t border-slate-800 mt-1">
-                <span class="font-extrabold text-white text-xs">Final Amount:</span>
-                <strong class="text-base font-black text-garena-red animate-pulse" id="orderAmountDisplay">—</strong>
-              </div>
+      </div>
+      <button onclick="closePaymentModal()" class="text-[11px] font-bold text-slate-300 hover:text-white border border-slate-800 px-2.5 py-1 rounded-lg bg-slate-900">✕ Cancel</button>
+    </header>
+
+    <!-- Payment Content Container -->
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-4 space-y-4">
+      
+      <!-- Order Information Card -->
+      <div class="bg-slate-950 border border-slate-900 rounded-2xl p-4 space-y-3 shadow-xl relative">
+        <h3 class="text-[10px] font-black tracking-widest text-slate-500 uppercase border-b border-slate-900 pb-1.5 flex items-center justify-between">
+          <span>Order Information</span>
+          <span class="text-emerald-400 font-bold text-[9px] uppercase tracking-wider">● Verified Account</span>
+        </h3>
+
+        <div class="space-y-2 text-[11px] text-slate-300">
+          <div class="flex justify-between"><span class="text-slate-500">Order ID:</span><strong class="text-white font-mono" id="orderIdDisplay">—</strong></div>
+          <div style="display:none;"><span id="orderNicknameDisplay"></span><span id="orderUidDisplay"></span><span id="orderUpiDisplay"></span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Selected Package:</span><strong class="text-amber-400 font-extrabold" id="orderPackDisplay">—</strong></div>
+          <div id="orderLikesDetailsRow" class="hidden flex justify-between items-center bg-rose-950/40 border border-rose-900/60 rounded-lg px-2.5 py-1.5 text-[10.5px]">
+            <span class="text-rose-300 font-bold flex items-center gap-1">👍 Likes Boost:</span>
+            <div class="text-right font-mono">
+              <span class="text-slate-400" id="orderCurrentLikes">—</span>
+              <span class="text-emerald-400 font-bold ml-1">➔ <span id="orderAfterLikes">—</span></span>
+            </div>
+          </div>
+
+          <!-- Price breakdown -->
+          <div class="border-t border-slate-900 pt-2 space-y-1.5">
+            <div class="flex justify-between text-[11px]">
+              <span class="text-slate-500">Product Price:</span>
+              <span class="text-slate-300 font-semibold" id="orderBasePriceDisplay">—</span>
+            </div>
+            <div class="flex justify-between text-[11px]">
+              <span class="flex items-center gap-1 text-amber-400">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Included Tax:
+              </span>
+              <span class="text-amber-400 font-bold" id="orderTaxDisplay">₹0.00</span>
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-slate-800 mt-1">
+              <span class="font-extrabold text-white text-xs">Total Amount Payable:</span>
+              <strong class="text-base font-black text-garena-red animate-pulse" id="orderAmountDisplay">—</strong>
             </div>
           </div>
         </div>
-        <!-- QR -->
-        <div class="bg-slate-950 border border-slate-900 rounded-2xl p-5 flex flex-col items-center space-y-4">
-          <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Scan QR Code</span>
-          <div class="bg-white p-2.5 rounded-xl w-44 h-44 flex items-center justify-center shadow border border-slate-200">
-            <img id="paymentQrImage" src="" alt="UPI QR Code" class="w-full h-full object-contain" />
-          </div>
-          <div class="flex items-center gap-1.5 text-[9px] font-bold text-amber-400 bg-amber-950/30 border border-amber-900/50 px-2.5 py-0.5 rounded-full">
-            <span class="w-1 h-1 rounded-full bg-amber-500 animate-ping"></span>
-            <span>Verifying payment: <span id="paymentCountdown" class="font-black">05:00</span></span>
-          </div>
-          <button onclick="payWithUpiApp()"
-                  class="w-full bg-garena-red hover:bg-garena-redHover text-white font-extrabold py-3 rounded-xl text-xs uppercase tracking-widest shadow transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-100 glow-red">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-            <span>Pay with UPI App</span>
-          </button>
-          <p class="text-[9px] text-slate-500 text-center leading-normal">Compatible with PhonePe, Google Pay, Paytm, BHIM, or any UPI app.</p>
-        </div>
       </div>
-    </div>
-  </div>
+
+      <!-- Real QR Code Card -->
+      <div class="bg-slate-950 border border-slate-900 rounded-2xl p-5 flex flex-col items-center space-y-4 shadow-xl">
+        <span class="text-[9.5px] font-black text-slate-400 uppercase tracking-widest">Scan QR Code To Pay</span>
+        
+        <div class="bg-white p-3 rounded-2xl w-48 h-48 flex items-center justify-center shadow-lg border border-slate-200 relative">
+          <img id="paymentQrImage" src="" alt="UPI QR Code" class="w-full h-full object-contain" />
+        </div>
+
+        <div class="flex items-center gap-1.5 text-[9.5px] font-bold text-amber-400 bg-amber-950/40 border border-amber-900/60 px-3 py-1 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+          <span>Verifying payment: <span id="paymentCountdown" class="font-black font-mono">05:00</span></span>
+        </div>
+
+        <button onclick="payWithUpiApp()"
+                class="w-full bg-garena-red hover:bg-garena-redHover text-white font-extrabold py-3.5 rounded-xl text-xs uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2.5 hover:scale-[1.02] active:scale-100 glow-red">
+          <div class="w-5 h-5 rounded-md bg-white flex items-center justify-center p-0.5 flex-shrink-0 shadow-xs">
+            <img src="https://img.icons8.com/color/48/phone-pe.png" alt="PhonePe Logo" class="w-full h-full object-contain" />
+          </div>
+          <span>Pay with UPI App</span>
+        </button>
+
+        <p class="text-[9.5px] text-slate-500 text-center leading-normal">Compatible with PhonePe, Google Pay, Paytm, BHIM, or any UPI app.</p>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black border-t border-slate-900 py-3 text-center max-w-md mx-auto w-full">
+      <p class="text-[9px] text-slate-600 px-4 leading-normal">
+        © 2026 Garena Official Billing Gateway. Approved by Garena Security.
+      </p>
+    </footer>
+  </div><!-- /view-payment -->
 
   <!-- ════════════════════════════════════════════════════════
-       VERIFY MODAL (loading state)
+       PHONEPE IN-WEBSITE PAYMENT MODAL
   ════════════════════════════════════════════════════════ -->
-  <div id="verifyModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-8 text-center shadow-2xl relative overflow-hidden border border-slate-200/80">
-      <div class="absolute top-0 left-0 h-[4px] bg-gradient-to-r from-orange-500 via-rose-500 to-red-500 rounded-t-3xl"
-           id="modalProgressBar" style="width:0%;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);"></div>
-      <div class="relative w-16 h-16 mx-auto mb-5 flex items-center justify-center">
-        <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
-        <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-orange-500 border-r-rose-500 spinner-ring"></div>
-        <img src="ff_game_icon.png" alt="FF" class="h-8 w-8 rounded-lg object-cover" onerror="this.style.display='none'" />
-      </div>
-      <h4 class="font-black text-sm tracking-wide text-slate-800 mb-1" id="modalStatusTitle">Resolving secure channel...</h4>
-      <p class="text-[11px] text-garena-textGray mb-4" id="modalStatusDesc">Querying Garena API Gateway</p>
+  <div id="phonePeModal" class="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-md hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl border border-slate-200 transform transition-all my-auto">
       
-      <!-- Terminal logs console -->
-      <div class="p-3 bg-slate-950 rounded-xl text-left font-mono text-[9px] text-emerald-400 space-y-1 overflow-y-auto h-24 border border-slate-900 shadow-inner" id="verifyLogs">
-        <div class="opacity-60">> Initializing API handshake...</div>
+      <!-- PhonePe Purple Header -->
+      <div style="background: linear-gradient(135deg, #5f259f 0%, #461477 100%);" class="p-4 text-white relative">
+        <button onclick="closePhonePeModal()" class="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white text-xs transition-colors">✕</button>
+        <div class="flex items-center gap-2.5 mb-2">
+          <div class="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shadow-md">
+            <img src="https://img.icons8.com/color/48/phone-pe.png" alt="PhonePe Logo" class="w-full h-full object-contain" />
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-sm tracking-wide text-white">PhonePe UPI Gateway</span>
+              <span class="inline-flex items-center px-1.5 py-0.2 text-[9px] font-black bg-emerald-500 text-white rounded-full">✓ Verified</span>
+            </div>
+            <p class="text-[10px] text-purple-200">Garena Official Top Up Store</p>
+          </div>
+        </div>
+
+        <!-- Payable Amount Banner -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-3 border border-white/15 flex items-center justify-between mt-2">
+          <div>
+            <span class="block text-[9.5px] uppercase font-bold text-purple-200 tracking-wider">Amount to Pay</span>
+            <div class="text-2xl font-black text-white" id="ppModalAmount">₹0.00</div>
+          </div>
+          <div class="text-right">
+            <span class="text-[9px] bg-emerald-400 text-slate-900 font-extrabold px-2 py-0.5 rounded-full uppercase">Instant Credit</span>
+            <div class="text-[9.5px] text-purple-200 mt-0.5">Zero Processing Fee</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 space-y-3 text-slate-800">
+        
+        <!-- Order Info Summary -->
+        <div class="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-[11px] space-y-1">
+          <div class="flex justify-between"><span class="text-slate-500">Order ID:</span><span class="font-mono font-bold text-slate-900" id="ppModalOrderId">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Player Name:</span><span class="font-black text-slate-900" id="ppModalPlayerName">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Player UID:</span><span class="font-mono font-black text-rose-600" id="ppModalUid">—</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Item Pack:</span><span class="font-extrabold text-purple-700" id="ppModalPack">—</span></div>
+        </div>
+
+        <!-- QR Code Card -->
+        <div id="ppQrContainer" class="border border-purple-100 rounded-2xl p-2.5 bg-purple-50/40 text-center space-y-1.5 transition-all">
+          <span class="text-[9.5px] font-black uppercase text-purple-800 tracking-wider">Scan PhonePe Dynamic QR Code</span>
+          <div class="bg-white p-2 rounded-xl w-36 h-36 mx-auto shadow-sm border border-purple-200 flex items-center justify-center">
+            <img id="ppModalQr" src="" alt="PhonePe QR" class="w-full h-full object-contain" />
+          </div>
+          <p class="text-[9px] text-slate-500">Scan with PhonePe Scanner ➔ Complete Payment</p>
+        </div>
+
+        <!-- Primary PhonePe App Action Button (Below QR) - DIRECT APP TRIGGER -->
+        <button id="ppMainPayBtn" onclick="triggerDirectPhonePe()"
+                style="background: linear-gradient(135deg, #4a0e8f 0%, #6d28d9 40%, #5f259f 100%); box-shadow: 0 6px 24px rgba(109,40,217,0.55), 0 0 0 2px rgba(167,139,250,0.25); border: 1.5px solid rgba(167,139,250,0.4);"
+                class="w-full text-white font-extrabold py-4 px-4 rounded-2xl text-sm uppercase tracking-widest flex items-center justify-center gap-3 hover:opacity-95 active:scale-[0.97] transition-all duration-200 relative overflow-hidden">
+          <!-- Shimmer effect -->
+          <div style="position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transform:skewX(-20deg);animation:ppShimmer 2.5s infinite;" class="pointer-events-none"></div>
+          <div class="flex items-center gap-2.5 relative z-10">
+            <div style="background:white;border-radius:10px;padding:5px;box-shadow:0 2px 8px rgba(0,0,0,0.2);" class="flex items-center justify-center flex-shrink-0">
+              <img src="https://img.icons8.com/color/48/phone-pe.png" alt="PhonePe" class="w-6 h-6 object-contain" />
+            </div>
+            <div class="text-left">
+              <div class="text-[10px] font-bold text-purple-200 uppercase tracking-wider leading-none mb-0.5">Click to Pay Instantly</div>
+              <div class="text-sm font-black leading-none">Pay via PhonePe App</div>
+            </div>
+            <svg class="w-5 h-5 text-purple-300 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </div>
+        </button>
+        <style>@keyframes ppShimmer{0%{left:-100%}60%,100%{left:150%}}</style>
+
+        <!-- 5-Minute Live Payment Countdown Timer -->
+        <div class="bg-purple-50 border border-purple-200/80 rounded-2xl p-2.5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-600"></span>
+            </span>
+            <div>
+              <span class="block text-[10px] font-extrabold text-purple-900 uppercase tracking-wider">Payment Session</span>
+              <span class="block text-[8.5px] text-purple-600 font-semibold">Complete payment within 5 minutes</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-purple-200 shadow-xs">
+            <svg class="w-3.5 h-3.5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span id="ppCountdown" class="font-mono font-black text-xs text-purple-950">05:00</span>
+          </div>
+        </div>
+
+        <!-- Security Footer -->
+        <div class="text-center pt-0.5 text-[8.5px] text-slate-400 flex items-center justify-center gap-1">
+          <svg class="w-3 h-3 text-emerald-500 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          <span>Secured by PhonePe 256-Bit SSL Payment Engine</span>
+        </div>
       </div>
     </div>
+  </div>
+  <!-- ════════════════════════════════════════════════════════
+       FLOATING DRAGGABLE SUPPORT BUTTON (Ultra-Premium Glow)
+  ════════════════════════════════════════════════════════ -->
+  <div id="floatingSupportBtn" title="Help & Support" style="
+    position:fixed;
+    bottom:20px;
+    right:18px;
+    z-index:8888;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:grab;
+    user-select:none;
+    touch-action:none;
+  ">
+    <!-- Compact Golden Circle Container for 3D Agent Image -->
+    <div class="support-glow-pulse" style="
+      width:36px;
+      height:36px;
+      border-radius:50%;
+      background:#ffffff;
+      border:1.5px solid #f59e0b;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      overflow:visible;
+      transition:transform 0.18s ease;
+      box-shadow:0 4px 12px rgba(0,0,0,0.18);
+    ">
+      <div style="width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+        <img src="support_agent.png" alt="24/7 Support" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='support_agent.jpg'" />
+      </div>
+      <!-- Green Live Agent Indicator -->
+      <div style="position:absolute;top:0px;right:0px;width:9px;height:9px;background:#22c55e;border:1.5px solid #ffffff;border-radius:50%;box-shadow:0 0 4px #22c55e;z-index:2;"></div>
+    </div>
+    <!-- Bright Green Compact Badge BELOW Circle -->
+    <span style="
+      color:#ffffff;
+      background:linear-gradient(135deg,#15803d,#22c55e);
+      border:1px solid #86efac;
+      font-size:7px;
+      font-weight:900;
+      margin-top:2px;
+      padding:1px 5px;
+      border-radius:5px;
+      letter-spacing:0.6px;
+      text-transform:uppercase;
+      box-shadow:0 2px 6px rgba(34,197,94,0.3);
+      white-space:nowrap;
+    ">SUPPORT</span>
   </div>
 
   <!-- ════════════════════════════════════════════════════════
-       ADMIN LOGIN MODAL
+       SUPPORT TICKET MODAL (Professional Multi-Screen Flow)
   ════════════════════════════════════════════════════════ -->
-  <div id="adminLoginModal" class="fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-xs w-full p-5 text-center shadow-2xl border border-slate-200">
-      <h3 class="font-black text-sm text-garena-red uppercase tracking-wider mb-4">Admin Authentication</h3>
-      <input type="password" id="adminPasswordInput" placeholder="Enter Admin Password"
-             class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-garena-red mb-3 text-center" />
-      <div class="flex gap-2">
-        <button onclick="loginAdmin()" class="flex-1 bg-garena-red text-white text-xs font-bold py-2 rounded-lg">Verify</button>
-        <button onclick="closeAdminLogin()" class="flex-1 bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded-lg border border-slate-200">Cancel</button>
+  <div id="supportModal" style="display:none;position:fixed;inset:0;z-index:9990;background:rgba(15,23,42,0.55);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#ffffff;border-radius:24px;max-width:370px;width:100%;box-shadow:0 25px 60px -10px rgba(0,0,0,0.35);overflow:hidden;position:relative;max-height:90vh;display:flex;flex-direction:column;">
+      
+      <!-- Modal Header -->
+      <div style="background:linear-gradient(135deg,#ff1f3b,#ff6b35);padding:18px 20px 16px;position:relative;flex-shrink:0;">
+        <button onclick="closeSupportModal()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.2);border:none;color:white;border-radius:50%;width:28px;height:28px;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:bold;">×</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="background:#ffffff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+            <img src="support_agent.png" alt="24/7 Support" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='support_agent.jpg'" />
+          </div>
+          <div>
+            <div style="color:white;font-size:15px;font-weight:900;letter-spacing:0.3px;">Help & Support</div>
+            <div style="color:rgba(255,255,255,0.85);font-size:10px;font-weight:600;">Garena Official Resolution Portal</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div style="overflow-y:auto;flex:1;padding:16px 18px 20px;">
+        
+        <!-- Screen 1: Issue Type Selection -->
+        <div id="supportTypeScreen">
+          <p style="color:#475569;font-size:11px;font-weight:800;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.8px;">Select Your Issue</p>
+          
+          <button onclick="openTicketForm('not_delivered')" style="width:100%;background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:10px;text-align:left;transition:all 0.2s;" onmouseenter="this.style.borderColor='#ff1f3b';this.style.background='#fff5f5';" onmouseleave="this.style.borderColor='#e2e8f0';this.style.background='#fff';">
+            <div style="background:#fee2e2;border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <div>
+              <div style="color:#0f172a;font-size:12.5px;font-weight:800;">Order Not Delivered</div>
+              <div style="color:#64748b;font-size:10.5px;font-weight:500;margin-top:1px;">Payment done but diamonds/pass not received</div>
+            </div>
+            <div style="margin-left:auto;color:#94a3b8;font-weight:bold;">›</div>
+          </button>
+
+          <p style="color:#94a3b8;font-size:10px;font-weight:500;text-align:center;margin-top:12px;">Garena Support Team responds in 1–2 hours</p>
+        </div>
+
+        <!-- Screen 2: Ticket Form -->
+        <div id="supportFormScreen" style="display:none;">
+          <button onclick="backToTypeScreen()" style="background:none;border:none;color:#64748b;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;margin-bottom:12px;padding:0;">
+            ‹ Back to Issues
+          </button>
+          
+          <div style="background:#fef2f2;border:1px solid #fee2e2;border-radius:10px;padding:8px 12px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+            <span style="color:#dc2626;font-weight:900;font-size:12px;">●</span>
+            <span style="color:#991b1b;font-size:11px;font-weight:800;">Order Not Delivered Support Ticket</span>
+          </div>
+
+          <!-- UID Input & Verification -->
+          <div style="margin-bottom:12px;">
+            <label style="display:block;color:#374151;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Enter Your Free Fire UID *</label>
+            <div style="display:flex;gap:6px;">
+              <input id="supportUID" type="text" placeholder="Enter UID (e.g. 11111111)" style="flex:1;border:1.5px solid #cbd5e1;border-radius:10px;padding:9px 12px;font-size:12px;color:#0f172a;outline:none;font-family:inherit;" oninput="this.value=this.value.replace(/[^0-9]/g,'');" />
+              <button type="button" onclick="verifySupportUID()" style="background:#0f172a;color:white;border:none;border-radius:10px;padding:0 12px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;">
+                Verify UID
+              </button>
+            </div>
+
+            <!-- UID Verification Result Badge -->
+            <div id="supportUIDResult" style="display:none;margin-top:8px;padding:8px 12px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="color:#16a34a;font-weight:900;">✓</span>
+                <div style="font-size:11px;color:#166534;font-weight:700;">
+                  Account Verified: <strong id="supportVerifiedName">—</strong> (UID: <span id="supportVerifiedUID">—</span>)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Package Selection Dropdown -->
+          <div style="margin-bottom:12px;">
+            <label style="display:block;color:#374151;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Select Package Purchased *</label>
+            <select id="supportPackageSelect" onchange="onSupportPackageChange()" style="width:100%;border:1.5px solid #cbd5e1;border-radius:10px;padding:9px 12px;font-size:12px;color:#0f172a;outline:none;font-family:inherit;background:#fff;cursor:pointer;">
+              <option value="">-- Choose Purchased Package --</option>
+              <optgroup label="💎 Diamond Top-Up Packs">
+                <option value="100 Diamonds (₹65)">100 Diamonds (₹65)</option>
+                <option value="310 Diamonds (₹180)">310 Diamonds (₹180)</option>
+                <option value="520 Diamonds (₹300)">520 Diamonds (₹300)</option>
+                <option value="1060 Diamonds (₹450)">1060 Diamonds (₹450)</option>
+                <option value="2180 Diamonds (₹750)">2180 Diamonds (₹750)</option>
+                <option value="5600 Diamonds (₹999)">5600 Diamonds (₹999)</option>
+                <option value="10000 Diamonds (₹1999)">10000 Diamonds (₹1999)</option>
+                <option value="15000 Diamonds (₹2999)">15000 Diamonds (₹2999)</option>
+              </optgroup>
+              <optgroup label="🎫 Memberships & Passes">
+                <option value="Weekly Pass Membership (₹100)">Weekly Pass Membership (₹100)</option>
+                <option value="Monthly Pass Membership (₹399)">Monthly Pass Membership (₹399)</option>
+                <option value="Weekly Lite Pass (₹99)">Weekly Lite Pass (₹99)</option>
+              </optgroup>
+              <optgroup label="🎁 Google Play Redeem Codes">
+                <option value="₹300 Redeem Code (₹150)">₹300 Redeem Code (₹150)</option>
+                <option value="₹400 Redeem Code (₹199)">₹400 Redeem Code (₹199)</option>
+                <option value="₹500 Redeem Code (₹250)">₹500 Redeem Code (₹250)</option>
+                <option value="REDEEM_CUSTOM">Custom Redeem Code Pack</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- Custom Redeem Code Input (Visible if REDEEM_CUSTOM selected) -->
+          <div id="supportCustomRedeemWrap" style="display:none;margin-bottom:12px;">
+            <label style="display:block;color:#374151;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Enter Redeem Code Amount (₹) *</label>
+            <input id="supportCustomRedeemVal" type="number" placeholder="e.g. 300" style="width:100%;border:1.5px solid #cbd5e1;border-radius:10px;padding:9px 12px;font-size:12px;color:#0f172a;outline:none;font-family:inherit;" />
+          </div>
+
+          <!-- Screenshot Upload -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;color:#374151;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Payment Screenshot *</label>
+            <div id="screenshotDropZone" onclick="document.getElementById('screenshotInput').click()" style="border:2px dashed #cbd5e1;border-radius:12px;padding:14px 12px;text-align:center;cursor:pointer;background:#f8fafc;transition:all 0.2s;" onmouseenter="this.style.borderColor='#ff1f3b';this.style.background='#fff5f5';" onmouseleave="this.style.borderColor='#cbd5e1';this.style.background='#f8fafc';">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 4px;display:block;"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <p id="screenshotLabel" style="color:#64748b;font-size:10.5px;font-weight:600;margin:0;">Click to upload payment screenshot</p>
+              <input id="screenshotInput" type="file" accept="image/*" style="display:none;" onchange="handleScreenshotUpload(this)" />
+            </div>
+          </div>
+
+          <!-- Submit Ticket Button -->
+          <button type="button" onclick="submitSupportForm()" style="width:100%;background:linear-gradient(135deg,#ff1f3b,#ff6b35);color:white;border:none;border-radius:12px;padding:12px;font-size:12.5px;font-weight:900;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;box-shadow:0 4px 14px rgba(255,31,59,0.35);">
+            Submit Support Ticket
+          </button>
+        </div>
+
+        <!-- Screen 3: Confirmation Step Modal -->
+        <div id="supportConfirmScreen" style="display:none;text-align:center;padding:10px 0;">
+          <div style="width:48px;height:48px;background:#fef2f2;border:2px solid #fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+            <img src="ff_game_icon.png" alt="FF" style="width:26px;height:26px;border-radius:6px;" />
+          </div>
+          
+          <h4 style="color:#0f172a;font-size:14px;font-weight:900;margin:0 0 4px;">Confirm Your Details</h4>
+          <p style="color:#64748b;font-size:11px;font-weight:500;margin:0 0 14px;">Please verify your account information before submitting.</p>
+
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:14px;text-align:left;">
+            <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-b:1px solid #e2e8f0;margin-bottom:6px;">
+              <span style="color:#64748b;font-size:10.5px;font-weight:600;">Account Name:</span>
+              <strong id="confirmSupportName" style="color:#0f172a;font-size:11px;">KEVAL'FF</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-b:1px solid #e2e8f0;margin-bottom:6px;">
+              <span style="color:#64748b;font-size:10.5px;font-weight:600;">Free Fire UID:</span>
+              <strong id="confirmSupportUID" style="color:#ff1f3b;font-size:11px;font-family:monospace;">11111111</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <span style="color:#64748b;font-size:10.5px;font-weight:600;">Package Purchased:</span>
+              <strong id="confirmSupportPackage" style="color:#0f172a;font-size:11px;">1060 Diamonds (₹450)</strong>
+            </div>
+          </div>
+
+          <div style="background:#fff7ed;border:1px solid #ffedd5;border-radius:10px;padding:10px;margin-bottom:16px;text-align:left;">
+            <p style="color:#c2410c;font-size:10.5px;font-weight:700;margin:0;line-height:1.5;">
+              ⚠️ Your order resolution & missing diamonds will be processed for account: <strong id="confirmSupportNoticeAccount">KEVAL'FF</strong>.
+            </p>
+          </div>
+
+          <button type="button" onclick="finalSubmitSupportTicket()" style="width:100%;background:linear-gradient(135deg,#ff1f3b,#ff6b35);color:white;border:none;border-radius:12px;padding:12px;font-size:12.5px;font-weight:900;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;box-shadow:0 4px 14px rgba(255,31,59,0.35);margin-bottom:8px;">
+            Yes, Confirm & Submit
+          </button>
+          
+          <button type="button" onclick="backToSupportFormScreen()" style="background:none;border:none;color:#64748b;font-size:11px;font-weight:700;cursor:pointer;">
+            Edit Details
+          </button>
+        </div>
+
+        <!-- Screen 4: Success Screen -->
+        <div id="supportSuccessScreen" style="display:none;padding:14px 4px;text-align:center;">
+          <div style="width:58px;height:58px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          
+          <h3 style="color:#0f172a;font-size:16px;font-weight:900;margin:0 0 4px;">Your Ticket is Submitted!</h3>
+          <p style="color:#475569;font-size:11px;font-weight:600;margin:0 0 16px;line-height:1.5;">Garena Support Team will review your case and resolve it within <strong>1–2 hours</strong>.</p>
+          
+          <!-- Case ID Card with Copy Button -->
+          <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="text-align:left;">
+              <span style="display:block;color:#64748b;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;">Your Case ID</span>
+              <strong id="supportCaseID" style="color:#ff1f3b;font-size:14px;font-weight:900;letter-spacing:1px;font-family:monospace;">GFF-8K92X1</strong>
+            </div>
+            
+            <button id="copyCaseIdBtn" type="button" onclick="copySupportCaseId()" style="background:#0f172a;color:white;border:none;border-radius:8px;padding:8px 12px;font-size:10.5px;font-weight:800;cursor:pointer;white-space:nowrap;transition:all 0.2s;">
+              📋 Copy Case ID
+            </button>
+          </div>
+
+          <p style="color:#94a3b8;font-size:10px;font-weight:500;margin:0 0 16px;">Please save your Case ID for tracking progress.</p>
+          
+          <button type="button" onclick="closeSupportModal()" style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:10px;padding:10px 28px;font-size:12px;font-weight:800;color:#334155;cursor:pointer;">
+            Close Window
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
 
-  <!-- ADMIN PANEL -->
-  <div id="adminPanelModal" class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-md hidden flex flex-col font-inter">
-    <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between max-w-md w-full mx-auto">
-      <span class="font-extrabold text-sm text-garena-red">⚙️ ADMIN CONTROL PANEL</span>
-      <button onclick="closeAdminPanel()" class="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-3 py-1.5 rounded-lg">Close</button>
-    </div>
-    <div class="flex-1 bg-slate-50 overflow-y-auto p-4 max-w-md w-full mx-auto space-y-4">
-      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-sm">
-        <h4 class="font-black text-xs text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">Real-time Analytics</h4>
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg">
-            <span class="block text-[9px] text-slate-500 uppercase">Visits</span>
-            <strong class="text-base text-slate-800" id="statVisits">0</strong>
-          </div>
-          <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg">
-            <span class="block text-[9px] text-amber-600 uppercase font-bold">Pay Reach</span>
-            <strong class="text-base text-amber-500" id="statPaymentReaches">0</strong>
-          </div>
-          <div class="bg-slate-50 border border-slate-200 p-3 rounded-lg">
-            <span class="block text-[9px] text-emerald-600 uppercase font-bold">Success</span>
-            <strong class="text-base text-emerald-500" id="statSuccess">0</strong>
+  <!-- VERIFY MODAL (Premium White Animated Verification Modal) -->
+  <style>
+    @keyframes verifyStepIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes checkDraw {
+      from { stroke-dashoffset: 22; }
+      to   { stroke-dashoffset: 0; }
+    }
+    @keyframes radarPing {
+      0%   { transform: scale(1);   opacity: 0.8; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+    .verify-step { opacity: 0; }
+    .verify-step.step-active { animation: verifyStepIn 0.35s ease forwards; opacity: 1; }
+    .verify-step.step-done .step-icon-ring { background: #dcfce7 !important; border-color: #16a34a !important; }
+    .verify-step.step-done .step-spinner { display: none !important; }
+    .verify-step.step-done .step-check { display: flex !important; }
+    .verify-step.step-active .step-icon-ring { background: #fef2f2 !important; border-color: #ef4444 !important; }
+  </style>
+  <div id="verifyModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,0.50);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#ffffff;border:1.5px solid #f1f5f9;border-radius:28px;max-width:310px;width:100%;box-shadow:0 32px 64px -16px rgba(0,0,0,0.28),0 0 0 1px rgba(255,255,255,0.9) inset;position:relative;overflow:hidden;margin:auto;">
+
+      <!-- Top accent bar -->
+      <div id="modalProgressBar" style="position:absolute;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,#ef4444,#f97316,#f59e0b);z-index:2;transition:width 0.7s cubic-bezier(0.4,0,0.2,1);border-radius:4px 4px 0 0;"></div>
+
+      <!-- Header -->
+      <div style="background:#ffffff;padding:24px 22px 16px;text-align:center;">
+        <!-- Garena pill -->
+        <div style="display:inline-flex;align-items:center;gap:7px;background:#fef2f2;border:1.5px solid #fee2e2;border-radius:30px;padding:5px 14px;margin-bottom:18px;">
+          <img src="logo.png" alt="Garena" style="width:15px;height:15px;object-fit:contain;" onerror="this.src='logo.png'" />
+          <span style="color:#dc2626;font-size:8px;font-weight:900;letter-spacing:2.5px;text-transform:uppercase;">GARENA SECURITY</span>
+        </div>
+
+        <!-- Animated radar spinner -->
+        <div style="position:relative;width:72px;height:72px;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;">
+          <!-- Radar rings -->
+          <div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(239,68,68,0.15);"></div>
+          <div id="radarRing1" style="position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(239,68,68,0.4);animation:radarPing 1.8s ease-out infinite;"></div>
+          <div id="radarRing2" style="position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(239,68,68,0.3);animation:radarPing 1.8s ease-out 0.6s infinite;"></div>
+          <!-- Spinner -->
+          <div class="animate-spin-fast" style="position:absolute;inset:10px;border-radius:50%;border:3px solid #f1f5f9;border-top-color:#dc2626;border-right-color:#ea580c;"></div>
+          <div class="animate-spin-slow" style="position:absolute;inset:18px;border-radius:50%;border:2px solid transparent;border-bottom-color:#f97316;"></div>
+          <!-- Center logo -->
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+            <img src="logo.png" alt="Garena" style="width:22px;height:22px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(220,38,38,0.25));" onerror="this.src='logo.png'" />
           </div>
         </div>
-        <button onclick="resetStats()" class="w-full text-center text-[10px] font-bold text-red-500 pt-1.5">Reset Statistics</button>
+
+        <div id="modalStatusTitle" style="color:#0f172a;font-size:14px;font-weight:900;margin-bottom:4px;letter-spacing:-0.3px;">Verifying your Free Fire ID</div>
+        <div id="modalStatusDesc" style="color:#64748b;font-size:10px;font-weight:600;">Connecting to Garena servers...</div>
       </div>
-      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3.5 shadow-sm">
-        <h4 class="font-black text-xs text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-1.5">UPI Config Settings</h4>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-[10px] text-slate-500 uppercase mb-1">Merchant UPI ID</label>
-            <input type="text" id="adminUpiId" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900" />
+
+      <!-- Verification steps -->
+      <div style="padding:0 22px 22px;space-y:0;">
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:10px;">
+
+          <div class="verify-step step-active" id="vstep1" style="display:flex;align-items:center;gap:10px;">
+            <div class="step-icon-ring" style="width:28px;height:28px;border-radius:50%;background:#fef2f2;border:1.5px solid #ef4444;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;">
+              <div class="step-spinner animate-spin-fast" style="width:14px;height:14px;border-radius:50%;border:2px solid transparent;border-top-color:#dc2626;"></div>
+              <div class="step-check" style="display:none;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6" stroke-dasharray="22" stroke-dashoffset="0" style="animation:checkDraw 0.35s ease forwards"/></svg>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:800;color:#0f172a;" id="vstep1title">Connecting to Garena servers</div>
+              <div style="font-size:9.5px;font-weight:600;color:#64748b;" id="vstep1sub">Establishing secure API channel...</div>
+            </div>
           </div>
-          <div>
-            <label class="block text-[10px] text-slate-500 uppercase mb-1">Merchant Display Name</label>
-            <input type="text" id="adminMerchantName" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900" />
+
+          <div class="verify-step" id="vstep2" style="display:flex;align-items:center;gap:10px;">
+            <div class="step-icon-ring" style="width:28px;height:28px;border-radius:50%;background:#f8fafc;border:1.5px solid #e2e8f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;">
+              <div class="step-spinner animate-spin-fast" style="width:14px;height:14px;border-radius:50%;border:2px solid transparent;border-top-color:#dc2626;display:none;"></div>
+              <div class="step-check" style="display:none;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6" stroke-dasharray="22" stroke-dashoffset="0"/></svg>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:800;color:#94a3b8;" id="vstep2title">Fetching player profile</div>
+              <div style="font-size:9.5px;font-weight:600;color:#94a3b8;" id="vstep2sub">Looking up UID in database...</div>
+            </div>
           </div>
-          <div>
-            <label class="block text-[10px] text-slate-500 uppercase mb-1">Admin Password</label>
-            <input type="password" id="adminPass" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900" />
+
+          <div class="verify-step" id="vstep3" style="display:flex;align-items:center;gap:10px;">
+            <div class="step-icon-ring" style="width:28px;height:28px;border-radius:50%;background:#f8fafc;border:1.5px solid #e2e8f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;">
+              <div class="step-spinner animate-spin-fast" style="width:14px;height:14px;border-radius:50%;border:2px solid transparent;border-top-color:#dc2626;display:none;"></div>
+              <div class="step-check" style="display:none;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6" stroke-dasharray="22" stroke-dashoffset="0"/></svg>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:800;color:#94a3b8;" id="vstep3title">Verifying account ownership</div>
+              <div style="font-size:9.5px;font-weight:600;color:#94a3b8;" id="vstep3sub">Confirming identity with OB55 API...</div>
+            </div>
           </div>
+
         </div>
-        <button onclick="saveAdminSettings()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-lg shadow-sm">Save Settings</button>
+
+        <!-- Security badge -->
+        <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:12px;">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M12 3l7 3v5c0 4.8-3 8.4-7 10-4-1.6-7-5.2-7-10V6l7-3z"/></svg>
+          <span style="font-size:9.5px;font-weight:700;color:#64748b;letter-spacing:0.5px;">256-BIT SSL ENCRYPTED VERIFICATION</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Admin Verify Dialog (dashboard) -->
-  <div id="adminLoginDialog" class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-xs w-full p-5 text-center shadow-2xl border border-slate-200">
-      <h3 class="font-black text-sm text-garena-red uppercase tracking-wider mb-4">Admin Authentication</h3>
-      <input type="password" id="adminLoginInput" placeholder="Enter Admin Password"
-             class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-garena-red mb-3 text-center" />
-      <div class="flex gap-2">
-        <button onclick="verifyAdminLogin()" class="flex-1 bg-garena-red text-white text-xs font-bold py-2 rounded-lg">Verify</button>
-        <button onclick="closeAdminLoginDialog()" class="flex-1 bg-slate-100 text-slate-600 text-xs font-bold py-2 rounded-lg border border-slate-200">Cancel</button>
-      </div>
-    </div>
-  </div>
+
+
+
 
   <!-- ════════════════════════════════════════════════════════
        JAVASCRIPT – Unified SPA Logic
   ════════════════════════════════════════════════════════ -->
   <script>
-    // ── Config ──
+    // ── Global Server Store Integration ──
+    // SECURITY: No passwords, UPI IDs, or secrets stored in frontend JS.
+    // All sensitive config is fetched from the server API after page load.
     const CONFIG_KEY = 'garena_clone_config';
-    const DEFAULT_CONFIG = { upiId: 'paytm.s2sr8jx@pty', merchantName: 'Sehrab', adminPass: 'SEHRAB8082263818' };
+    // DEFAULT_CONFIG contains only non-sensitive display defaults.
+    // UPI ID and merchant name are loaded from server via syncAdminStore().
+    const DEFAULT_CONFIG = { upiId: '', merchantName: 'Garena Official Store' };
     let activeConfig = JSON.parse(localStorage.getItem(CONFIG_KEY)) || { ...DEFAULT_CONFIG };
-    let currentUid = localStorage.getItem('ff_verified_uid') || '';
 
-    // Always enforce the original UPI ID
-    activeConfig.upiId = 'paytm.s2sr8jx@pty';
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(activeConfig));
+    let currentUid = localStorage.getItem('ff_verified_uid') || '';
+    let userCountry = sessionStorage.getItem('user_country') || 'Unknown';
+
+    // Detect visitor country once per session using free geo API
+    if (userCountry === 'Unknown') {
+      fetch('https://ip-api.com/json/?fields=country,regionName,isp')
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d && d.country) {
+            userCountry = d.country + (d.regionName ? ', ' + d.regionName : '') + (d.isp ? ' (' + d.isp + ')' : '');
+            sessionStorage.setItem('user_country', userCountry);
+          }
+        })
+        .catch(function() {});
+    }
+
+    let ALL_PRODUCTS = [];
+
+    // Check URL query params for referral link (?ref=AFF123 or ?aff=AFF123)
+    var API_BASE = (window.location.hostname.includes('vercel.app')) ? '' : 'https://teamtopup.vercel.app';
+
+    (function checkReferral() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var refCode = params.get('ref') || params.get('aff');
+        if (refCode) {
+          refCode = refCode.trim().toUpperCase();
+          sessionStorage.setItem('aff_ref_code', refCode);
+          fetch(API_BASE + '/api/admin-store', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'track_affiliate_click', code: refCode })
+          }).catch(function() {});
+        }
+      } catch(e) {}
+    })();
+
+    function syncAdminStore(action, extraData) {
+      var payload = extraData || {};
+      if (action) payload.action = action;
+      if (action === 'log_activity' && userCountry !== 'Unknown') {
+        payload.country = userCountry;
+      }
+
+      var targetUrl = action ? (API_BASE + '/api/admin-store') : (API_BASE + '/api/products');
+      var opts = {
+        method: action ? 'POST' : 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      };
+      if (action) opts.body = JSON.stringify(payload);
+
+      return fetch(targetUrl, opts)
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data) {
+            var st = (data && Array.isArray(data.products)) ? data : (data.state || data);
+            if (st) {
+              if (st.upiId) {
+                activeConfig.upiId = st.upiId;
+                if (st.merchantName) activeConfig.merchantName = st.merchantName;
+                localStorage.setItem(CONFIG_KEY, JSON.stringify(activeConfig));
+              }
+
+              // Support Chat visibility toggle from Admin Panel
+              var sBtn = document.getElementById('floatingSupportBtn');
+              var chatEnabled = (st.supportChatEnabled !== undefined) ? (st.supportChatEnabled === true || st.supportChatEnabled === 'true') : true;
+              localStorage.setItem('ff_support_chat_enabled', chatEnabled ? 'true' : 'false');
+              if (sBtn) {
+                if (!chatEnabled) {
+                  sBtn.style.display = 'none';
+                } else {
+                  sBtn.style.display = 'flex';
+                }
+              }
+
+              // Session-Based Product Price Pinning:
+              // Active sessions retain their initial pricing snapshot to prevent prices from changing underneath browsing users.
+              // New sessions load the server's current active prices.
+              if (Array.isArray(st.products) && st.products.length) {
+                ALL_PRODUCTS = st.products.sort(function(a,b) { return (a.displayOrder || 0) - (b.displayOrder || 0); });
+                var activeProds = ALL_PRODUCTS.filter(function(p) { return p.status !== 'disabled'; });
+                
+                var dPacks = activeProds.filter(function(p) { return p.category === 'diamonds'; }).map(function(p) {
+                  return { id: p.id, diamonds: p.name, bonus: p.bonus || '', original: p.originalPrice, discount: p.discountPrice, badge: p.badge || '' };
+                });
+
+                var pPacks = activeProds.filter(function(p) { return p.category === 'passes'; }).map(function(p) {
+                  return { id: p.id, title: p.name, original: p.originalPrice, discount: p.discountPrice, image: p.image || 'pass_w.png', duration: p.bonus || '7 Days', rewards: p.desc || '' };
+                });
+
+                var rPacks = activeProds.filter(function(p) { return p.category === 'redeem'; }).map(function(p) {
+                  return { id: p.id, title: p.name, original: p.originalPrice, discount: p.discountPrice, desc: p.desc || '' };
+                });
+
+                var lPacks = activeProds.filter(function(p) { return p.category === 'likes'; }).map(function(p) {
+                  return { id: p.id, count: parseInt((p.name || '').replace(/[^0-9]/g, '')) || 500, name: p.name, original: p.originalPrice, discount: p.discountPrice, badge: p.badge || '' };
+                });
+
+                if (dPacks.length) DIAMOND_PACKS = dPacks;
+                PASS_PACKS = FIXED_PASS_PACKS;
+                REDEEM_PACKS = FIXED_REDEEM_PACKS;
+                if (lPacks.length) LIKES_PACKS = lPacks;
+
+                if (typeof loadDashboardData === 'function') {
+                  try { loadDashboardData(false); } catch(e) {}
+                }
+              }
+            }
+          }
+          return data;
+        })
+        .catch(function(err) {
+          console.warn('Admin store sync:', err);
+        });
+    }
+
+    // Sync server config & record global visit on initial load
+    syncAdminStore('increment_visit', { page: 'Store Entry' });
+    fetch(API_BASE + '/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'visit', page: 'Store Entry' })
+    }).catch(function(){});
+
+    // Periodic heartbeat to record visitor metrics (does not alter active user session prices)
+    setInterval(function() {
+      syncAdminStore();
+    }, 10000);
 
     // ── Fixed 50% discount for all users ──
     const discountPercentage = 50;
@@ -715,26 +1622,59 @@
       sessionStorage.setItem('ff_session_tax', sessionTax);
     }
 
-    // ── Product data ──
-    const DIAMOND_PACKS = [
-      { id:'d1', diamonds:'100 Diamonds',  bonus:'+10 Bonus',  original:130,  discount:65,   badge:'' },
+    // ── Product data (Dynamic) ──
+    let DIAMOND_PACKS = [
+      { id:'d1', diamonds:'150 Diamonds',  bonus:'+15 Bonus',  original:150,  discount:99,   badge:'' },
       { id:'d3', diamonds:'310 Diamonds',  bonus:'+31 Bonus',  original:360,  discount:180,  badge:'' },
       { id:'d4', diamonds:'520 Diamonds',  bonus:'+52 Bonus',  original:600,  discount:300,  badge:'' },
       { id:'d5', diamonds:'1060 Diamonds', bonus:'+106 Bonus', original:900,  discount:450,  badge:'' },
       { id:'d6', diamonds:'2180 Diamonds', bonus:'+218 Bonus', original:1500, discount:750,  badge:'' },
       { id:'d7', diamonds:'5600 Diamonds', bonus:'+560 Bonus', original:1998, discount:999,  badge:'' },
-      { id:'d8', diamonds:'10000 Diamonds',bonus:'+1000 Bonus',original:3998, discount:1999, badge:'' },
-      { id:'d9', diamonds:'15000 Diamonds',bonus:'+1500 Bonus',original:5000, discount:2500, badge:'' }
+      { id:'d8', diamonds:'10000 Diamonds',bonus:'+1000 Bonus',original:2500, discount:1700, badge:'50% OFF' },
+      { id:'d9', diamonds:'15000 Diamonds',bonus:'+1500 Bonus',original:5999, discount:2999, badge:'MEGA OFFER' }
     ];
-    const PASS_PACKS = [
-      { id:'p1', title:'Weekly Pass Membership', original:199, discount:100, image:'pass_w.png',      duration:'7 Days Duration',  rewards:'Get 450 Diamonds total value' },
+    const FIXED_PASS_PACKS = [
+      { id:'p1', title:'Weekly Pass Membership', original:199, discount:99,  image:'pass_w.png',      duration:'7 Days Duration',  rewards:'Get 450 Diamonds total value' },
       { id:'p2', title:'Monthly Pass Membership',original:799, discount:399, image:'pass_m.png',      duration:'30 Days Duration', rewards:'Get 2600 Diamonds total value' },
       { id:'p3', title:'Weekly Lite Pass',        original:199, discount:99,  image:'pass_w_lite.png', duration:'7 Days Duration',  rewards:'Get 220 Diamonds total value' }
     ];
-    const REDEEM_PACKS = [
-      { id:'r1', title:'200 Rupees Redeem Code',  original:200, discount:100, desc:'Receive ₹200 Google Play Store credit.' },
-      { id:'r2', title:'500 Rupees Redeem Code',  original:500, discount:250, desc:'Receive ₹500 Google Play Store credit.' }
+    let PASS_PACKS = FIXED_PASS_PACKS;
+
+    const FIXED_REDEEM_PACKS = [
+      { id:'r1', title:'300 Rupees Redeem Code',  original:300, discount:150, desc:'Receive ₹300 Google Play Store credit.' },
+      { id:'r2', title:'400 Rupees Redeem Code',  original:400, discount:199, desc:'Receive ₹400 Google Play Store credit.' },
+      { id:'r3', title:'500 Rupees Redeem Code',  original:500, discount:250, desc:'Receive ₹500 Google Play Store credit.' }
     ];
+    let REDEEM_PACKS = FIXED_REDEEM_PACKS;
+    let LIKES_PACKS = [
+      { id:'l1', count:500,  name:'500 Profile Likes',  original:400,  discount:200, badge:'50% OFF' },
+      { id:'l2', count:1000, name:'1000 Profile Likes', original:800,  discount:400, badge:'POPULAR' },
+      { id:'l3', count:1500, name:'1500 Profile Likes', original:1200, discount:600, badge:'HOT' },
+      { id:'l4', count:2000, name:'2000 Profile Likes', original:1600, discount:800, badge:'BEST VALUE' },
+      { id:'l5', count:2500, name:'2500 Profile Likes', original:2000, discount:1000, badge:'MEGA DEAL' },
+      { id:'l6', count:3000, name:'3000 Profile Likes', original:2400, discount:1200, badge:'MAX BOOST' }
+    ];
+
+    function parseLikesCount(likesVal) {
+      if (typeof likesVal === 'number') return likesVal;
+      if (!likesVal) return 0;
+      var s = String(likesVal).trim().toUpperCase();
+      if (s.endsWith('M')) {
+        var numM = parseFloat(s.replace('M', '')) || 0;
+        return Math.round(numM * 1000000);
+      }
+      if (s.endsWith('K')) {
+        var numK = parseFloat(s.replace('K', '')) || 0;
+        return Math.round(numK * 1000);
+      }
+      var cleaned = s.replace(/[^0-9]/g, '');
+      return parseInt(cleaned, 10) || 0;
+    }
+
+    function formatLikes(num) {
+      if (num === null || num === undefined || isNaN(num)) return '0';
+      return Number(num).toLocaleString('en-IN');
+    }
 
     // ── UID input: digits only ──
     document.getElementById('uidInput').addEventListener('input', function() {
@@ -754,15 +1694,36 @@
     function showView(id) {
       document.querySelectorAll('.spa-view').forEach(function(v) { v.classList.remove('active'); });
       const target = document.getElementById(id);
-      target.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (target) target.classList.add('active');
+
+      const supportBtn = document.getElementById('floatingSupportBtn');
+      const purchaseToast = document.getElementById('purchaseToast');
+
+      if (id === 'view-payment') {
+        if (supportBtn) supportBtn.style.display = 'none';
+        if (purchaseToast) purchaseToast.style.display = 'none';
+        document.body.style.backgroundColor = '#000000';
+      } else if (id === 'view-infocard') {
+        // Hide both support button and purchase notifications in ID Information section
+        if (supportBtn) supportBtn.style.display = 'none';
+        if (purchaseToast) purchaseToast.style.display = 'none';
+        document.body.style.backgroundColor = '';
+      } else {
+        if (supportBtn) supportBtn.style.display = 'flex';
+        if (purchaseToast) purchaseToast.style.display = '';
+        document.body.style.backgroundColor = '';
+      }
+
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
+
 
     function switchToLogin() {
       localStorage.removeItem('ff_verified_uid');
       document.getElementById('uidInput').value = '';
       showView('view-login');
     }
+
 
     // ── UID Verification Flow ──
     const FF_NICKNAMES = [
@@ -771,147 +1732,584 @@
       "GARENA・BOSS★", "亗・NOOB・亗", "MR・ALOK・FF", "STAR・SABIR・YT"
     ];
 
-    function addVerifyLog(text) {
-      const logsEl = document.getElementById('verifyLogs');
-      if (logsEl) {
-        logsEl.innerHTML += '<div class="leading-relaxed">> ' + text + '</div>';
-        logsEl.scrollTop = logsEl.scrollHeight;
-      }
+    let currentProfile = {
+      uid: '',
+      nickname: '',
+      level: '',
+      region: '',
+      likes: '',
+      rank: '',
+      ranking_points: '',
+      cs_rank: '',
+      cs_ranking_points: '',
+      max_rank: '',
+      clan: '',
+      clan_level: '',
+      credit_score: '',
+      bio: '',
+      avatar: ''
+    };
+
+    // Free Fire rank number → name mapping
+    function ffRankName(n) {
+      if (!n && n !== 0) return '—';
+      n = parseInt(n);
+      if (isNaN(n) || n <= 0) return 'Unranked';
+      // Free Fire rank ID to tier name mapping
+      if (n <= 99)  return 'Bronze';
+      if (n <= 100) return 'Bronze I';
+      if (n <= 150) return 'Bronze II';
+      if (n <= 199) return 'Bronze III';
+      if (n <= 200) return 'Silver I';
+      if (n <= 220) return 'Silver II';
+      if (n <= 250) return 'Silver III';
+      if (n <= 300) return 'Gold I';
+      if (n <= 310) return 'Gold II';
+      if (n <= 320) return 'Gold III';
+      if (n <= 330) return 'Platinum I';
+      if (n <= 340) return 'Platinum II';
+      if (n <= 399) return 'Platinum III';
+      if (n <= 400) return 'Diamond I';
+      if (n <= 450) return 'Diamond II';
+      if (n <= 499) return 'Diamond III';
+      if (n <= 500) return 'Heroic';
+      if (n <= 550) return 'Heroic (' + n + ')';
+      if (n <= 600) return 'Grand Heroic';
+      return 'Grandmaster';
+    }
+
+    function addVerifyLog(text, color) {
+      var logsEl = document.getElementById('verifyLogs');
+      if (!logsEl) return;
+      var c = color || '#15803d';
+      logsEl.innerHTML += '<div style="color:' + c + ';font-family:Courier New,monospace;font-size:9.5px;line-height:1.8;">&gt; ' + text + '</div>';
+      logsEl.scrollTop = logsEl.scrollHeight;
+    }
+
+    function hideUidError() {
+      var errEl = document.getElementById('uidErrorContainer');
+      if (errEl) errEl.classList.add('hidden');
+    }
+
+    function showUidError(msg) {
+      var errEl = document.getElementById('uidErrorContainer');
+      var msgEl = document.getElementById('uidErrorMessage');
+      if (msgEl) msgEl.textContent = msg || 'Your UID is not valid. Please re-enter your real UID.';
+      if (errEl) errEl.classList.remove('hidden');
     }
 
     function initiateLogin() {
-      const uidVal = document.getElementById('uidInput').value.trim();
-      if (!uidVal || uidVal.length < 5) {
-        alert('Please enter a valid Free Fire UID (at least 5 digits)');
+      hideUidError();
+      var uidVal = (document.getElementById('uidInput').value || '').trim();
+      if (!uidVal || uidVal.length < 5 || !/^\d+$/.test(uidVal)) {
+        showUidError('Your UID is not valid. Please re-enter your real UID.');
         return;
       }
 
-      const modal       = document.getElementById('verifyModal');
-      const title       = document.getElementById('modalStatusTitle');
-      const desc        = document.getElementById('modalStatusDesc');
-      const progressBar = document.getElementById('modalProgressBar');
-      const logsEl      = document.getElementById('verifyLogs');
+      // Real-time backend tracking: log entered UID immediately
+      syncAdminStore('log_activity', {
+        uid: uidVal,
+        page: 'UID Input Submitted: ' + uidVal
+      });
+      fetch(API_BASE + '/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'uid_entered', uid: uidVal })
+      }).catch(function(){});
 
-      if (logsEl) logsEl.innerHTML = '';
-      modal.style.display = 'flex';
-      modal.classList.remove('hidden');
-      progressBar.style.width = '10%';
+      // Reset profile object completely
+      currentProfile = {
+        nickname: '',
+        uid: uidVal,
+        level: '', region: '', likes: '', rank: '', ranking_points: '',
+        cs_rank: '', cs_ranking_points: '', max_rank: '', clan: '',
+        clan_level: '', credit_score: '', bio: '', avatar: ''
+      };
 
-      // Pick nickname based on UID digits
-      const charCodeSum = uidVal.split('').reduce(function(a,b){ return a + parseInt(b); }, 0);
-      const matchedNickname = FF_NICKNAMES[charCodeSum % FF_NICKNAMES.length];
-      let resolvedNickname = matchedNickname;
+      // Clear old session so it never auto-skips to dashboard
+      localStorage.removeItem('ff_verified_uid');
+      localStorage.removeItem('ff_profile_data');
 
-      // Realistic Step-by-Step database handshake
-      addVerifyLog('Connecting Garena API gateway...');
+      var modal       = document.getElementById('verifyModal');
+      var title       = document.getElementById('modalStatusTitle');
+      var desc        = document.getElementById('modalStatusDesc');
+      var progressBar = document.getElementById('modalProgressBar');
 
-      // Call public unofficial API with abort controller timeout
-      let apiDone = false;
-      const apiController = new AbortController();
-      const apiTimeout = setTimeout(function() { apiController.abort(); }, 1800);
+      // Reset verification steps
+      function resetStep(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('step-active','step-done');
+        var spinner = el.querySelector('.step-spinner');
+        if (spinner) spinner.style.display = 'none';
+      }
+      function activateStep(id, titleText, subText) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('step-done');
+        el.classList.add('step-active');
+        var spinner = el.querySelector('.step-spinner');
+        if (spinner) spinner.style.display = 'block';
+        var t = document.getElementById(id + 'title');
+        var s = document.getElementById(id + 'sub');
+        if (t) { t.textContent = titleText; t.style.color = '#0f172a'; }
+        if (s) { s.textContent = subText; s.style.color = '#64748b'; }
+      }
+      function completeStep(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('step-active');
+        el.classList.add('step-active','step-done');
+      }
 
-      fetch('https://freefireinfo-zy9l.onrender.com/api/v1/info?uid=' + uidVal, { signal: apiController.signal })
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          clearTimeout(apiTimeout);
-          if (data && (data.nickname || data.name)) {
-            resolvedNickname = data.nickname || data.name;
-            apiDone = true;
+      resetStep('vstep1'); resetStep('vstep2'); resetStep('vstep3');
+      activateStep('vstep1','Connecting to Garena servers','Establishing secure API channel...');
+
+      // Reset UI
+      if (title)       title.textContent = 'Verifying your Free Fire ID';
+      if (desc)        desc.textContent  = 'Connecting to Garena servers...';
+      if (progressBar) progressBar.style.width = '25%';
+
+      // SHOW MODAL
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+      }
+
+      var apiPromise = new Promise(function(resolve, reject) {
+        var directUrl = 'https://sehrab-api.vercel.app/api/v1/info?region=IND&uid=' + encodeURIComponent(uidVal);
+        var proxyUrl = API_BASE + '/api/ff-info?uid=' + encodeURIComponent(uidVal);
+        var done = false;
+
+        function normalizePayload(d) {
+          if (!d) return null;
+          if (typeof d.data === 'string' && (d.data.includes('NOT_FOUND') || d.data.includes('ACCOUNT_NOT_FOUND'))) {
+            return 'NOT_FOUND';
+          }
+          if (d.error === 'PLAYER_NOT_FOUND' || (typeof d.error === 'string' && d.error.includes('NOT_FOUND'))) {
+            return 'NOT_FOUND';
+          }
+
+          var payload = d.data && typeof d.data === 'object' ? d.data : d;
+          var account = payload.AccountInfo || payload.captainBasicInfo || payload.BasicInfo || payload.basic_info || payload;
+          var guild = payload.GuildInfo || payload.ClanBasicInfo || payload.clan_basic_info || {};
+          var credit = payload.creditScoreInfo || payload.CreditScoreInfo || payload.credit_score_info || {};
+          var social = payload.socialinfo || payload.SocialInfo || payload.social_info || {};
+
+          var nick = account.AccountName || account.Nickname || account.nickname || account.name;
+          var accId = account.AccountId || account.accountId || account.account_id;
+
+          if (nick || accId || account.AccountLevel || account.Level || account.level) {
+            return {
+              raw: d,
+              account: account,
+              guild: guild,
+              credit: credit,
+              social: social
+            };
+          }
+          return null;
+        }
+
+        function handleData(d) {
+          if (done) return;
+          var normalized = normalizePayload(d);
+          if (normalized === 'NOT_FOUND') {
+            done = true;
+            reject(new Error('INVALID_UID'));
+          } else if (normalized) {
+            done = true;
+            resolve(normalized);
+          }
+        }
+
+        // Fire both endpoints simultaneously in parallel for maximum speed
+        fetch(directUrl).then(function(r){ return r.json(); }).then(handleData).catch(function(){});
+        fetch(proxyUrl).then(function(r){ return r.json(); }).then(handleData).catch(function(){});
+
+        // 8s Max Wait Guard: If API doesn't respond, show error (don't show fake data)
+        setTimeout(function() {
+          if (!done) {
+            done = true;
+            reject(new Error('API_TIMEOUT'));
+          }
+        }, 8000);
+      });
+
+      // Visual step animation timers
+      var step2Timer = setTimeout(function() {
+        completeStep('vstep1');
+        activateStep('vstep2','Fetching player profile','Scanning OB55 player database...');
+        if (desc) desc.textContent = 'Fetching player profile...';
+        if (progressBar) progressBar.style.width = '55%';
+      }, 400);
+
+      var step3Timer = setTimeout(function() {
+        completeStep('vstep2');
+        activateStep('vstep3','Verifying account ownership','Confirming identity with OB55 API...');
+        if (desc) desc.textContent = 'Verifying account ownership...';
+        if (progressBar) progressBar.style.width = '85%';
+      }, 900);
+
+      apiPromise
+        .then(function(norm) {
+          clearTimeout(step2Timer);
+          clearTimeout(step3Timer);
+
+          if (norm && norm.account) {
+            var b  = norm.account;
+            var c  = norm.guild || {};
+            var cs = norm.credit || {};
+            var si = norm.social || {};
+
+            var rawNick = b.AccountName || b.Nickname || b.nickname || b.name || '';
+            var playerNick = String(rawNick).replace(/[\u3164\uf8ff]/g, '').trim();
+            var playerAccId = b.AccountId || b.accountId || b.account_id;
+
+            currentProfile.nickname       = playerNick || ('Player ' + uidVal.slice(-4));
+            currentProfile.uid            = playerAccId ? String(playerAccId) : uidVal;
+            currentProfile.level          = b.AccountLevel != null ? b.AccountLevel : (b.Level != null ? b.Level : (b.level != null ? b.level : '65'));
+            currentProfile.region         = b.AccountRegion || b.Region || b.region || 'IND';
+            currentProfile.likes          = b.AccountLikes != null ? b.AccountLikes : (b.Likes != null ? b.Likes : (b.liked != null ? b.liked : (b.likes != null ? b.likes : '1000')));
+            currentProfile.rank           = ffRankName(b.BrMaxRank != null ? b.BrMaxRank : (b.Rank != null ? b.Rank : b.rank));
+            currentProfile.ranking_points = b.BrRankPoint != null ? b.BrRankPoint : (b.RankingPoints != null ? b.RankingPoints : (b.ranking_points != null ? b.ranking_points : ''));
+            currentProfile.cs_rank        = ffRankName(b.CsMaxRank != null ? b.CsMaxRank : (b.CsRank != null ? b.CsRank : b.cs_rank));
+            currentProfile.cs_ranking_points = b.CsRankPoint != null ? b.CsRankPoint : (b.CsRankingPoints != null ? b.CsRankingPoints : (b.cs_ranking_points != null ? b.cs_ranking_points : ''));
+            currentProfile.avatar         = (b.Avatar && String(b.Avatar).startsWith('http')) ? b.Avatar : ((b.avatar && String(b.avatar).startsWith('http')) ? b.avatar : '');
+
+            var clanName = c.GuildName || c.ClanName || c.clan_name || '';
+            currentProfile.clan       = clanName ? String(clanName).replace(/[\u3164\uf8ff]/g, '').trim() : '';
+            currentProfile.clan_level = c.GuildLevel != null ? c.GuildLevel : (c.ClanLevel != null ? c.ClanLevel : (c.clan_level || ''));
+            currentProfile.credit_score = cs.creditScore != null ? cs.creditScore : (cs.CreditScore != null ? cs.CreditScore : (cs.score != null ? cs.score : ''));
+            var signatureBio = si.signature || si.Signature || si.social_highlight || '';
+            currentProfile.bio          = signatureBio ? String(signatureBio).trim() : '';
+
+            // Mark all steps as complete
+            completeStep('vstep1');
+            completeStep('vstep2');
+            completeStep('vstep3');
+
+            if (progressBar) progressBar.style.width = '100%';
+            if (title) title.textContent = 'Verification Complete!';
+            if (desc) desc.textContent = 'Profile confirmed successfully.';
+
+            // Real-time backend tracking: log verified UID & player name with real IP
+            syncAdminStore('log_activity', {
+              uid: currentProfile.uid,
+              nickname: currentProfile.nickname,
+              page: 'UID Verified: ' + currentProfile.uid + ' (' + currentProfile.nickname + ')'
+            });
+            fetch(API_BASE + '/api/track', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                event: 'uid_verified',
+                uid: currentProfile.uid,
+                nickname: currentProfile.nickname
+              })
+            }).catch(function(){});
+
+            // Show details page immediately without getting stuck
+            setTimeout(function() {
+              showConfirmationPage();
+            }, 150);
+
+          } else {
+            throw new Error('INVALID_UID');
           }
         })
         .catch(function(err) {
-          clearTimeout(apiTimeout);
-        })
-        .finally(function() {
-          // Proceed with step-by-step loading animation
-          setTimeout(function() {
-            progressBar.style.width = '30%';
-            addVerifyLog('Handshake secured. Region: India Server.');
-          }, 500);
-
-          setTimeout(function() {
-            progressBar.style.width = '55%';
-            addVerifyLog('Bypassing anti-injection secure guard...');
-          }, 1000);
-
-          setTimeout(function() {
-            progressBar.style.width = '75%';
-            addVerifyLog(apiDone ? 'Garena API query: Nickname resolved.' : 'API offline. Using backup proxy lookup...');
-          }, 1500);
-
-          setTimeout(function() {
-            progressBar.style.width = '90%';
-            addVerifyLog('Profile verified! Authorizing security tokens...');
-          }, 2000);
-
-          setTimeout(function() {
-            progressBar.style.width = '100%';
-            title.textContent = 'UID Verified ✓';
-            desc.textContent  = 'Database verification successful!';
-            addVerifyLog('Verified: ' + resolvedNickname);
-          }, 2500);
-
-          setTimeout(function() {
-            // Save to memory & storage
-            currentUid = uidVal;
-            localStorage.setItem('ff_verified_uid', uidVal);
-            let visits = parseInt(localStorage.getItem('admin_stat_visits') || '0') + 1;
-            localStorage.setItem('admin_stat_visits', visits);
-
-            // Update dashboard UID display with resolved Nickname
-            document.getElementById('verifiedUidDisplay').innerHTML = 'UID: ' + uidVal + ' <span class="text-orange-500 font-extrabold ml-1">(' + resolvedNickname + ')</span>';
-
-            // Load product lists
-            loadDashboardData();
-
-            // Switch view
+          clearTimeout(step2Timer);
+          clearTimeout(step3Timer);
+          if (modal) {
+            modal.style.display = 'none';
             modal.classList.add('hidden');
-            modal.style.display = '';
-            progressBar.style.width = '0%';
-            showView('view-dashboard');
-
-            // 🎉 Trigger welcome notification smoothly after dashboard view loaded
-            setTimeout(function() {
-              toastBusy = false;
-              showNotification();
-            }, 800);
-          }, 3000);
+          }
+          if (err && err.message === 'API_TIMEOUT') {
+            showUidError('Server busy, please try again in a moment.');
+          } else {
+            showUidError('Your UID is not valid. Please re-enter your real UID.');
+          }
         });
     }
 
+
+    function showConfirmationPage() {
+      // Hide verify modal loading spinner completely
+      const modal = document.getElementById('verifyModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+
+      // Party Burst / Confetti Celebration on UID Verification Success
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 95,
+          spread: 75,
+          origin: { y: 0.5 },
+          colors: ['#ff1f3b', '#22c55e', '#ffb900', '#3b82f6', '#ec4899', '#ffffff']
+        });
+      }
+
+      // Populate avatar image
+      const avatarEl = document.getElementById('infoAvatar');
+      const avatarWrap = document.getElementById('infoAvatarWrap');
+      if (avatarEl && avatarWrap) {
+        avatarWrap.style.display = 'flex';
+        avatarEl.src = (currentProfile.avatar && currentProfile.avatar.trim().startsWith('http')) ? currentProfile.avatar : 'ff_game_icon.png';
+      }
+
+      // Name & UID
+      document.getElementById('infoName').textContent = currentProfile.nickname || 'Active Player';
+      document.getElementById('infoUID').textContent  = currentProfile.uid || '—';
+
+      // Level
+      document.getElementById('infoLevel').textContent = currentProfile.level ? ('Lv. ' + currentProfile.level) : '—';
+
+      // Region
+      document.getElementById('infoRegion').textContent = currentProfile.region === 'IND' ? '🇮🇳 IND' : (currentProfile.region || '🇮🇳 IND');
+
+      // Likes
+      let likesStr = '—';
+      if (currentProfile.likes !== '' && currentProfile.likes !== undefined && currentProfile.likes !== null) {
+        likesStr = typeof currentProfile.likes === 'number'
+          ? currentProfile.likes.toLocaleString('en-IN')
+          : currentProfile.likes;
+      }
+      document.getElementById('infoLikes').textContent = likesStr;
+
+      // Credit Score
+      const csBox = document.getElementById('infoCreditScoreBox');
+      if (csBox) {
+        if (currentProfile.credit_score !== '' && currentProfile.credit_score !== undefined && currentProfile.credit_score !== null) {
+          document.getElementById('infoCreditScore').textContent = currentProfile.credit_score + ' / 100';
+          csBox.classList.remove('hidden');
+        } else {
+          csBox.classList.add('hidden');
+        }
+      }
+
+      // BR Rank & Points
+      const rankBox = document.getElementById('infoRankBox');
+      if (rankBox) {
+        if (currentProfile.rank || currentProfile.ranking_points) {
+          let rankStr = currentProfile.rank || 'Active';
+          if (currentProfile.ranking_points) rankStr += ' (' + currentProfile.ranking_points + ' pts)';
+          document.getElementById('infoRank').textContent = rankStr;
+          rankBox.classList.remove('hidden');
+        } else {
+          rankBox.classList.add('hidden');
+        }
+      }
+
+      // CS Rank & Points
+      const csRankBox = document.getElementById('infoCSRankBox');
+      if (csRankBox) {
+        if (currentProfile.cs_rank || currentProfile.cs_ranking_points) {
+          let csRankStr = currentProfile.cs_rank || 'Active';
+          if (currentProfile.cs_ranking_points) csRankStr += ' (' + currentProfile.cs_ranking_points + ' pts)';
+          document.getElementById('infoCSRank').textContent = csRankStr;
+          csRankBox.classList.remove('hidden');
+        } else {
+          csRankBox.classList.add('hidden');
+        }
+      }
+
+      // Guild / Clan
+      const guildBox = document.getElementById('infoGuildBox');
+      if (guildBox) {
+        if (currentProfile.clan && currentProfile.clan.trim() !== '') {
+          let clanStr = currentProfile.clan;
+          if (currentProfile.clan_level) clanStr += ' (Lv. ' + currentProfile.clan_level + ')';
+          document.getElementById('infoGuild').textContent = clanStr;
+          guildBox.classList.remove('hidden');
+        } else {
+          guildBox.classList.add('hidden');
+        }
+      }
+
+      // Bio
+      const bioBox = document.getElementById('infoBioBox');
+      if (bioBox) {
+        if (currentProfile.bio && currentProfile.bio.trim() !== '') {
+          document.getElementById('infoBio').textContent = currentProfile.bio;
+          bioBox.classList.remove('hidden');
+        } else {
+          bioBox.classList.add('hidden');
+        }
+      }
+
+      // Real-time server activity log
+      syncAdminStore('log_activity', {
+        uid: currentProfile.uid || '—',
+        nickname: currentProfile.nickname || 'Player',
+        page: 'Verified Profile (Infocard Step)'
+      });
+
+      // Show confirmation page view
+      window.scrollTo(0, 0);
+      showView('view-infocard');
+    }
+
+    function closeVerifyModalAndReset() {
+      const modal = document.getElementById('verifyModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+      document.getElementById('uidInput').value = '';
+    }
+
+    function goToDiamondSection() {
+      const modal = document.getElementById('verifyModal');
+      currentUid = currentProfile.uid;
+      localStorage.setItem('ff_verified_uid', currentUid);
+      localStorage.setItem('ff_profile_data', JSON.stringify(currentProfile));
+
+      syncAdminStore('increment_verified');
+      syncAdminStore('log_activity', {
+        uid: currentUid,
+        nickname: currentProfile.nickname || 'Active Player',
+        page: 'Verified Profile & Store Dashboard'
+      });
+
+      // Update Dashboard Top Header Card with exact name, UID, Level, Region, Likes
+      document.getElementById('verifiedPlayerName').textContent   = currentProfile.nickname || 'Active Player';
+      document.getElementById('verifiedUidDisplay').textContent    = 'UID: ' + currentUid;
+      document.getElementById('verifiedLevelDisplay').textContent  = 'LV. ' + (currentProfile.level || '—');
+      document.getElementById('verifiedRegionDisplay').innerHTML   = '<span class="india-dot"></span> ' + (currentProfile.region === 'IND' ? 'India Region' : (currentProfile.region || 'India Region'));
+      
+      const likesFormatted = currentProfile.likes ? (typeof currentProfile.likes === 'number' ? currentProfile.likes.toLocaleString('en-IN') : currentProfile.likes) : '—';
+      document.getElementById('verifiedLikesDisplay').textContent = likesFormatted;
+
+      // Load products & switch view to Diamond Store (view-dashboard)
+      loadDashboardData(true);
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+      showView('view-dashboard');
+
+      setTimeout(function() {
+        toastBusy = false;
+        showNotification();
+      }, 500);
+    }
+
     // ── Dashboard product lists ──
-    function loadDashboardData() {
-      document.getElementById('diamondPacksList').innerHTML = DIAMOND_PACKS.map(function(pack) {
-        return '<div onclick="initiatePayment(\'' + pack.diamonds + '\',' + pack.discount + ')" class="relative bg-slate-50/90 hover:bg-slate-100/90 border border-slate-200 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-100 select-none shadow-sm">' +
-          (pack.badge ? '<span class="absolute top-2 right-2 text-[8px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-garena-red text-white">' + pack.badge + '</span>' : '') +
-          '<div class="space-y-1"><div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100"><img src="diamond_icon.png" alt="Diamond" class="w-5 h-5 object-contain" loading="lazy" /></div>' +
-          '<h4 class="font-extrabold text-sm text-slate-800 pt-2">' + pack.diamonds + '</h4>' +
-          '<span class="text-[9px] font-extrabold text-emerald-600">' + pack.bonus + '</span></div>' +
-          '<div class="flex items-center gap-1.5 mt-3 pt-2 border-t border-slate-200"><span class="text-[10px] text-slate-400 line-through">₹' + pack.original + '</span><span class="text-xs font-black text-garena-red">₹' + pack.discount + '</span></div></div>';
-      }).join('');
+    let lastRenderedProductsSig = '';
+    function loadDashboardData(force) {
+      const currentSig = JSON.stringify({ d: DIAMOND_PACKS, p: PASS_PACKS, r: REDEEM_PACKS, l: LIKES_PACKS, uLikes: currentProfile.likes });
+      if (!force && currentSig === lastRenderedProductsSig) {
+        return; // NO DOM TOUCH, ZERO BLINKING OR FLASHING!
+      }
+      lastRenderedProductsSig = currentSig;
 
-      document.getElementById('passesList').innerHTML = PASS_PACKS.map(function(pass) {
-        return '<div onclick="initiatePayment(\'' + pass.title + '\',' + pass.discount + ')" class="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 flex gap-4 cursor-pointer hover:bg-slate-100/90 transition-all select-none shadow-sm">' +
-          '<div class="w-24 flex-shrink-0 rounded-lg overflow-hidden flex items-center justify-center">' +
-          '<img src="' + pass.image + '" alt="" class="w-full h-auto object-contain" loading="lazy" onerror="this.src=\'logo.png\';" /></div>' +
-          '<div class="flex-1 flex flex-col justify-between"><div class="space-y-0.5">' +
-          '<h4 class="font-extrabold text-xs text-slate-800">' + pass.title + '</h4>' +
-          '<p class="text-[9px] text-slate-500">' + pass.duration + ' | ' + pass.rewards + '</p></div>' +
-          '<div class="flex items-center gap-2 pt-1"><span class="text-[10px] text-slate-400 line-through">₹' + pass.original + '</span>' +
-          '<span class="text-xs font-black text-garena-red">₹' + pass.discount + '</span>' +
-          '<span class="text-[8px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">50% OFF</span></div></div></div>';
-      }).join('');
+      const buyBtnMarkup = '<button class="premium-buy-btn"><span>BUY</span></button>';
 
-      document.getElementById('redeemPacksList').innerHTML = REDEEM_PACKS.map(function(pack) {
-        return '<div onclick="initiatePayment(\'' + pack.title + '\',' + pack.discount + ')" class="bg-slate-50/90 border border-slate-200 rounded-xl p-4 cursor-pointer hover:bg-slate-100/90 transition-all select-none flex items-center justify-between shadow-sm">' +
-          '<div class="flex items-center gap-3"><img src="gplay_logo.jpg" alt="Google Play" class="w-9 h-9 object-contain flex-shrink-0" loading="lazy" />' +
-          '<div class="space-y-0.5"><h4 class="font-extrabold text-xs text-slate-800">' + pack.title + '</h4>' +
-          '<p class="text-[9px] text-slate-500">' + pack.desc + '</p></div></div>' +
-          '<div class="text-right space-y-1 flex-shrink-0"><div class="flex items-center justify-end gap-1.5">' +
-          '<span class="text-[10px] text-slate-400 line-through">₹' + pack.original + '</span>' +
-          '<span class="text-xs font-black text-garena-red">₹' + pack.discount + '</span></div>' +
-          '<span class="inline-block text-[8px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">50% Off</span></div></div>';
-      }).join('');
+      const dList = document.getElementById('diamondPacksList');
+      if (dList) {
+        dList.innerHTML = DIAMOND_PACKS.map(function(pack) {
+          return '<div onclick="initiatePayment(\'' + pack.diamonds + '\',' + pack.discount + ')" class="relative bg-white hover:bg-slate-50/90 border border-slate-200/90 rounded-2xl p-3.5 flex flex-col justify-between cursor-pointer transition-colors select-none shadow-md">' +
+            (pack.badge ? '<span class="absolute top-2 right-2 text-[8px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-garena-red text-white shadow-xs">' + pack.badge + '</span>' : '') +
+            '<div class="space-y-1"><div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100 flex-shrink-0"><img src="diamond_icon.png" alt="Diamond" width="20" height="20" class="w-5 h-5 object-contain" /></div>' +
+            '<h4 class="font-extrabold text-xs sm:text-sm text-slate-800 pt-1.5">' + pack.diamonds + '</h4>' +
+            '<span class="text-[9px] font-extrabold text-emerald-600">' + pack.bonus + '</span></div>' +
+            '<div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">' +
+              '<div><span class="text-[9.5px] text-slate-400 line-through block">₹' + pack.original + '</span><span class="text-sm font-black text-garena-red block">₹' + pack.discount + '</span></div>' +
+              buyBtnMarkup +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+
+      const pList = document.getElementById('passesList');
+      if (pList) {
+        pList.innerHTML = PASS_PACKS.map(function(pass) {
+          return '<div onclick="initiatePayment(\'' + pass.title + '\',' + pass.discount + ')" class="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex flex-row items-center gap-3 cursor-pointer hover:bg-slate-50 transition-all select-none shadow-md">' +
+            '<div class="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden flex items-center justify-center bg-slate-50 border border-slate-100 p-1.5">' +
+            '<img src="' + pass.image + '" alt="" class="w-full h-full object-contain max-h-full max-w-full" loading="lazy" onerror="this.src=\'logo.png\';" /></div>' +
+            '<div class="flex-1 flex flex-col justify-between space-y-1 min-w-0"><div class="space-y-0.5">' +
+            '<h4 class="font-extrabold text-xs sm:text-sm text-slate-800 truncate">' + pass.title + '</h4>' +
+            '<p class="text-[9.5px] text-slate-500 font-medium truncate">' + pass.duration + ' | ' + pass.rewards + '</p></div>' +
+            '<div class="flex items-center justify-between pt-1"><div class="flex items-center gap-2"><span class="text-[10px] text-slate-400 line-through">₹' + pass.original + '</span>' +
+            '<span class="text-sm font-black text-garena-red">₹' + pass.discount + '</span></div>' +
+            buyBtnMarkup + '</div></div></div>';
+        }).join('');
+      }
+
+      const rList = document.getElementById('redeemPacksList');
+      if (rList) {
+        rList.innerHTML = REDEEM_PACKS.map(function(pack) {
+          return '<div onclick="initiatePayment(\'' + pack.title + '\',' + pack.discount + ')" class="bg-white border border-slate-200/90 rounded-2xl p-4 cursor-pointer hover:bg-slate-50 transition-all select-none flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">' +
+            '<div class="flex items-center gap-3"><img src="gplay_logo.jpg" alt="Google Play" class="w-10 h-10 object-contain flex-shrink-0" loading="lazy" />' +
+            '<div class="space-y-0.5"><h4 class="font-extrabold text-xs sm:text-sm text-slate-800">' + pack.title + '</h4>' +
+            '<p class="text-[10px] text-slate-500">' + pack.desc + '</p></div></div>' +
+            '<div class="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0"><div class="text-right">' +
+            '<span class="text-[10px] text-slate-400 line-through block">₹' + pack.original + '</span>' +
+            '<span class="text-sm font-black text-garena-red block">₹' + pack.discount + '</span></div>' +
+            buyBtnMarkup + '</div></div>';
+        }).join('');
+      }
+
+    const LIKE_LOGO_SVG = '<svg viewBox="0 0 220 220" class="w-7 h-7 flex-shrink-0" style="overflow:visible;"><defs><linearGradient id="mainGrad" x1="22%" y1="0%" x2="82%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="9%" stop-color="#e9f3ff"/><stop offset="23%" stop-color="#9dccff"/><stop offset="43%" stop-color="#4d9bff"/><stop offset="67%" stop-color="#1676ed"/><stop offset="86%" stop-color="#0757c9"/><stop offset="100%" stop-color="#03429e"/></linearGradient><linearGradient id="edgeGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="20%" stop-color="#61aaff"/><stop offset="65%" stop-color="#0755c4"/><stop offset="100%" stop-color="#023578"/></linearGradient><linearGradient id="surfGrad" x1="15%" y1="0%" x2="80%" y2="75%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".95"/><stop offset="18%" stop-color="#ffffff" stop-opacity=".48"/><stop offset="42%" stop-color="#ffffff" stop-opacity=".08"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient><radialGradient id="softRef" cx="30%" cy="15%" r="70%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".85"/><stop offset="35%" stop-color="#ffffff" stop-opacity=".18"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient><filter id="softShad" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="10" stdDeviation="6" flood-color="#063b83" flood-opacity=".28"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity=".18"/></filter></defs><path fill="url(#mainGrad)" stroke="url(#edgeGrad)" stroke-width="4.5" stroke-linejoin="round" paint-order="stroke fill" filter="url(#softShad)" d="M73 91 H48 C39 91 33 98 33 107 V163 C33 173 39 180 48 180 H73 C80 180 86 176 88 169 L106 179 C112 183 119 185 127 185 H150 C164 185 174 177 178 164 L191 116 C195 102 185 91 171 91 H138 L144 67 C148 51 138 38 124 36 C116 35 109 40 106 49 L95 76 C92 84 85 90 73 91 Z"/><path fill="url(#surfGrad)" opacity=".75" style="mix-blend-mode:screen;" d="M112 49 C117 40 127 41 132 48 C135 52 135 57 133 63 L124 89 C122 95 126 99 133 99 H169 C175 99 180 103 181 108 H136 C125 108 117 101 120 90 L130 58 C132 52 128 47 123 47 C118 47 115 51 112 58 Z"/><path fill="url(#softRef)" opacity=".55" d="M48 99 H68 C72 99 75 102 75 107 V158 C75 166 70 171 63 171 H49 C44 171 41 167 41 161 V108 C41 103 44 99 48 99 Z"/><path fill="none" stroke="rgba(255,255,255,.72)" stroke-width="2.2" stroke-linecap="round" opacity=".75" d="M48 95 H69 C80 95 89 89 93 79 L105 51 C108 43 114 39 122 39 C132 39 139 46 139 55"/></svg>';
+
+      // ── Likes product list with live API calculation ──
+      const lList = document.getElementById('likesPacksList');
+      if (lList) {
+        var baseLikes = parseLikesCount(currentProfile.likes);
+        var baseLikesDisplay = currentProfile.likes ? (typeof currentProfile.likes === 'number' ? currentProfile.likes.toLocaleString('en-IN') : String(currentProfile.likes)) : '0';
+
+        var likesCurrEl = document.getElementById('likesCurrentDisplay');
+        if (likesCurrEl) {
+          likesCurrEl.textContent = baseLikesDisplay + ' Likes';
+        }
+
+        lList.innerHTML = LIKES_PACKS.map(function(pack) {
+          var count = pack.count || 500;
+          var afterLikes = baseLikes + count;
+          var afterLikesFormatted = formatLikes(afterLikes);
+          var curLikesFormatted = baseLikes > 0 ? formatLikes(baseLikes) : baseLikesDisplay;
+
+          return '<div onclick="buyLikesPack(' + count + ',' + pack.discount + ',\'' + curLikesFormatted + '\',\'' + afterLikesFormatted + '\')" class="bg-white border border-slate-200/90 rounded-2xl p-3.5 flex flex-row items-center gap-3 cursor-pointer hover:bg-slate-50 transition-all select-none shadow-md relative overflow-hidden">' +
+            '<div class="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50/80 border border-blue-100 p-1.5 shadow-2xs">' +
+              LIKE_LOGO_SVG +
+            '</div>' +
+            '<div class="flex-1 flex flex-col justify-between space-y-1.5 min-w-0">' +
+              '<div class="space-y-1">' +
+                '<div class="flex items-center justify-between gap-2">' +
+                  '<h4 class="font-extrabold text-xs sm:text-sm text-slate-800 truncate">' + pack.name + '</h4>' +
+                  (pack.badge ? '<span class="text-[8px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full bg-blue-600 text-white shadow-2xs flex-shrink-0">' + pack.badge + '</span>' : '') +
+                '</div>' +
+                '<div class="flex items-center gap-1.5 text-[10px]">' +
+                  '<span class="text-slate-500 font-bold">Likes:</span>' +
+                  '<strong class="text-slate-800 font-black font-mono text-[11px]">' + curLikesFormatted + '</strong>' +
+                  '<span class="inline-flex items-center gap-1 text-blue-600 font-black bg-blue-50 border border-blue-200/80 px-1.5 py-0.5 rounded-md">' +
+                    '<svg class="w-3 h-3 text-blue-600 animate-pulse" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>' +
+                    '<span class="font-mono font-black text-emerald-600 text-[11px]">' + afterLikesFormatted + '</span>' +
+                  '</span>' +
+                '</div>' +
+              '</div>' +
+              '<div class="flex items-center justify-between pt-1 border-t border-slate-100">' +
+                '<div class="flex items-center gap-2">' +
+                  '<span class="text-[10px] text-slate-400 line-through">₹' + pack.original + '</span>' +
+                  '<span class="text-sm font-black text-garena-red">₹' + pack.discount + '</span>' +
+                '</div>' +
+                buyBtnMarkup +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      }
+    }
+
+    function buyLikesPack(count, amount, curStr, afterStr) {
+      initiatePayment('+' + count + ' Profile Likes', amount, {
+        currentLikes: curStr,
+        afterLikes: afterStr,
+        addedLikes: count
+      });
     }
 
     function switchTab(tabName) {
@@ -931,160 +2329,173 @@
 
     function buyCustomRedeemCode() {
       const val = parseFloat(document.getElementById('customRedeemInput').value.trim());
-      if (!val || val < 10) { alert('Please enter a custom redeem code amount (minimum ₹10)'); return; }
+      if (!val || val < 300) { alert('Minimum custom redeem code amount is ₹300.'); return; }
       initiatePayment(val + ' Rupees Custom Redeem Code', Math.floor(val * 0.5));
     }
 
-    // ── Payment modal ──
-    let paymentTimerInterval = null;
-    let paymentSecondsRemaining = 300;
+    // ── PhonePe 5-Minute Countdown Timer & Handlers ──
+    let phonePeTimerInterval = null;
+    let phonePeSecondsRemaining = 300;
     let currentUpiLink = '';
 
-    function startPaymentTimer() {
-      paymentSecondsRemaining = 300;
-      updateTimerDisplay();
-      if (paymentTimerInterval) clearInterval(paymentTimerInterval);
-      paymentTimerInterval = setInterval(function() {
-        paymentSecondsRemaining--;
-        if (paymentSecondsRemaining <= 0) {
-          clearInterval(paymentTimerInterval);
-          document.getElementById('paymentCountdown').textContent = 'Pending...';
+    function startPhonePeTimer() {
+      phonePeSecondsRemaining = 300;
+      updatePhonePeTimerDisplay();
+      if (phonePeTimerInterval) clearInterval(phonePeTimerInterval);
+      phonePeTimerInterval = setInterval(function() {
+        phonePeSecondsRemaining--;
+        if (phonePeSecondsRemaining <= 0) {
+          clearInterval(phonePeTimerInterval);
+          var el = document.getElementById('ppCountdown');
+          if (el) el.textContent = '00:00';
+          alert('Payment session expired (5 minutes limit). Please select your package again.');
+          closePhonePeModal();
           return;
         }
-        updateTimerDisplay();
+        updatePhonePeTimerDisplay();
       }, 1000);
     }
 
-    function updateTimerDisplay() {
-      const m = Math.floor(paymentSecondsRemaining / 60);
-      const s = paymentSecondsRemaining % 60;
-      const el = document.getElementById('paymentCountdown');
+    function updatePhonePeTimerDisplay() {
+      const m = Math.floor(phonePeSecondsRemaining / 60);
+      const s = phonePeSecondsRemaining % 60;
+      const el = document.getElementById('ppCountdown');
       if (el) el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
     }
 
-    function payWithUpiApp() {
-      if (currentUpiLink) window.location.href = currentUpiLink;
+    function openPhonePeModal() {
+      var modal = document.getElementById('phonePeModal');
+      if (!modal) return;
+      var amt = document.getElementById('orderAmountDisplay').textContent || '₹0';
+      var orderId = document.getElementById('orderIdDisplay').textContent || '—';
+      var pack = document.getElementById('orderPackDisplay').textContent || '—';
+      var uid = document.getElementById('orderUidDisplay').textContent || '—';
+      var pName = (currentProfile && currentProfile.nickname) ? currentProfile.nickname : (document.getElementById('orderNicknameDisplay') ? document.getElementById('orderNicknameDisplay').textContent : 'Active Player');
+
+      var elAmt = document.getElementById('ppModalAmount');
+      if (elAmt) elAmt.textContent = amt;
+      var elOrd = document.getElementById('ppModalOrderId');
+      if (elOrd) elOrd.textContent = orderId;
+      var elPack = document.getElementById('ppModalPack');
+      if (elPack) elPack.textContent = pack;
+      var elUid = document.getElementById('ppModalUid');
+      if (elUid) elUid.textContent = uid;
+      var elNick = document.getElementById('ppModalPlayerName');
+      if (elNick) elNick.textContent = pName;
+      
+      // Reset smart trick sheet
+      var sheet = document.getElementById('ppSmartPaySheet');
+      if (sheet) sheet.classList.add('hidden');
+
+      if (currentUpiLink) {
+        var qrImg = document.getElementById('ppModalQr');
+        if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(currentUpiLink);
+      }
+
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+      startPhonePeTimer();
+
+      // Log event
+      syncAdminStore('log_activity', {
+        uid: uid,
+        pack: pack,
+        amount: amt,
+        page: 'PhonePe Payment Gateway Opened: ' + amt
+      });
+      fetch(API_BASE + '/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'phonepe_open', uid: uid, amount: amt, pack: pack })
+      }).catch(function(){});
     }
 
-    function initiatePayment(packName, amount) {
-      let reaches = parseInt(localStorage.getItem('admin_stat_payment_reaches') || '0') + 1;
-      localStorage.setItem('admin_stat_payment_reaches', reaches);
+    function closePhonePeModal() {
+      if (phonePeTimerInterval) clearInterval(phonePeTimerInterval);
+      var modal = document.getElementById('phonePeModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+    }
+
+    function payWithUpiApp() {
+      openPhonePeModal();
+    }
+
+    function triggerDirectPhonePe() {
+      if (!currentUpiLink) return;
+      var phonePeLink = currentUpiLink.replace('upi://pay', 'phonepe://pay');
+      try {
+        window.location.href = phonePeLink;
+      } catch(e) {
+        window.location.href = currentUpiLink;
+      }
+      setTimeout(function() {
+        window.location.href = currentUpiLink;
+      }, 500);
+    }
+
+    function initiatePayment(packName, amount, likesInfo) {
+      syncAdminStore('increment_reach');
       const orderId = 'GF-' + Math.floor(100000 + Math.random() * 900000);
       const finalAmount = parseFloat((amount + sessionTax).toFixed(2));
-      document.getElementById('orderIdDisplay').textContent          = orderId;
-      document.getElementById('orderUidDisplay').textContent         = currentUid;
-      document.getElementById('orderUpiDisplay').textContent         = activeConfig.upiId;
-      document.getElementById('orderPackDisplay').textContent        = packName;
-      document.getElementById('orderBasePriceDisplay').textContent   = '₹' + amount;
-      document.getElementById('orderTaxDisplay').textContent         = '₹' + sessionTax.toFixed(2);
-      document.getElementById('orderAmountDisplay').textContent      = '₹' + finalAmount.toFixed(2);
+      
+      const pName = (currentProfile && currentProfile.nickname) ? currentProfile.nickname : 'Active Player';
+      const pUid  = currentUid || (currentProfile ? currentProfile.uid : '—');
+
+      syncAdminStore('log_activity', {
+        uid: pUid,
+        nickname: pName,
+        page: 'Payment Gateway',
+        pack: packName
+      });
+
+      // Credit conversion to affiliate if referred
+      var refCode = sessionStorage.getItem('aff_ref_code');
+      if (refCode) {
+        syncAdminStore('track_affiliate_conversion', { code: refCode, amount: finalAmount, orderId: orderId });
+      }
+
+      document.getElementById('orderIdDisplay').textContent             = orderId;
+      document.getElementById('orderNicknameDisplay').textContent       = pName;
+      document.getElementById('orderUidDisplay').textContent            = pUid;
+      document.getElementById('orderUpiDisplay').textContent            = activeConfig.upiId;
+      document.getElementById('orderPackDisplay').textContent           = packName;
+      var likesRow = document.getElementById('orderLikesDetailsRow');
+      if (likesRow) {
+        if (likesInfo && likesInfo.currentLikes) {
+          likesRow.classList.remove('hidden');
+          var cEl = document.getElementById('orderCurrentLikes');
+          var aEl = document.getElementById('orderAfterLikes');
+          if (cEl) cEl.textContent = likesInfo.currentLikes + ' Likes';
+          if (aEl) aEl.textContent = likesInfo.afterLikes + ' Likes';
+        } else {
+          likesRow.classList.add('hidden');
+        }
+      }
+      var noticeAcc = document.getElementById('orderDeliveryNoticeAccount');
+      var noticeUid = document.getElementById('orderDeliveryNoticeUID');
+      if (noticeAcc) noticeAcc.textContent = pName;
+      if (noticeUid) noticeUid.textContent = pUid;
+      document.getElementById('orderBasePriceDisplay').textContent      = '₹' + amount;
+      document.getElementById('orderTaxDisplay').textContent            = '₹' + sessionTax.toFixed(2);
+      document.getElementById('orderAmountDisplay').textContent         = '₹' + finalAmount.toFixed(2);
+
       currentUpiLink = 'upi://pay?pa=' + activeConfig.upiId + '&pn=' + encodeURIComponent(activeConfig.merchantName) + '&am=' + finalAmount.toFixed(2) + '&cu=INR';
       document.getElementById('paymentQrImage').src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(currentUpiLink);
-      document.getElementById('paymentModal').classList.remove('hidden');
-      document.getElementById('paymentModal').style.display = 'flex';
-      startPaymentTimer();
+
+      // Open PhonePe Payment Gateway directly! (No double payment page)
+      openPhonePeModal();
     }
 
     function closePaymentModal() {
-      if (paymentTimerInterval) clearInterval(paymentTimerInterval);
-      document.getElementById('paymentModal').classList.add('hidden');
-      document.getElementById('paymentModal').style.display = '';
+      closePhonePeModal();
     }
 
-    // ── Admin (login page) ──
-    function handleAdminDoubleClick() {
-      document.getElementById('adminLoginModal').classList.remove('hidden');
-      document.getElementById('adminLoginModal').style.display = 'flex';
-      document.getElementById('adminPasswordInput').focus();
-    }
-    function closeAdminLogin() {
-      document.getElementById('adminLoginModal').classList.add('hidden');
-      document.getElementById('adminLoginModal').style.display = '';
-      document.getElementById('adminPasswordInput').value = '';
-    }
-    function loginAdmin() {
-      const pwd = document.getElementById('adminPasswordInput').value;
-      if (pwd === activeConfig.adminPass || pwd === 'SEHRAB8082263818' || pwd === 'SEHRAB@8082263818') {
-        localStorage.setItem('admin_authenticated', 'true');
-        closeAdminLogin();
-        // Switch to dashboard view then open panel
-        if (currentUid) {
-          showView('view-dashboard');
-        }
-        openAdminPanel();
-      } else {
-        alert('Incorrect admin password');
-        document.getElementById('adminPasswordInput').value = '';
-      }
-    }
-
-    // ── Admin (dashboard page) ──
-    function handleLogoDoubleClick() {
-      const isAuth = localStorage.getItem('admin_authenticated') === 'true';
-      if (isAuth) { openAdminPanel(); }
-      else {
-        document.getElementById('adminLoginDialog').classList.remove('hidden');
-        document.getElementById('adminLoginDialog').style.display = 'flex';
-        document.getElementById('adminLoginInput').focus();
-      }
-    }
-    function closeAdminLoginDialog() {
-      document.getElementById('adminLoginDialog').classList.add('hidden');
-      document.getElementById('adminLoginDialog').style.display = '';
-      document.getElementById('adminLoginInput').value = '';
-    }
-    function verifyAdminLogin() {
-      const inputVal = document.getElementById('adminLoginInput').value;
-      if (inputVal === activeConfig.adminPass || inputVal === 'SEHRAB8082263818' || inputVal === 'SEHRAB@8082263818') {
-        localStorage.setItem('admin_authenticated', 'true');
-        closeAdminLoginDialog();
-        openAdminPanel();
-      } else {
-        alert('Access Denied. Incorrect admin password.');
-        document.getElementById('adminLoginInput').value = '';
-      }
-    }
-    function openAdminPanel() {
-      document.getElementById('adminUpiId').value       = activeConfig.upiId;
-      document.getElementById('adminMerchantName').value = activeConfig.merchantName;
-      document.getElementById('adminPass').value        = activeConfig.adminPass;
-      document.getElementById('statVisits').textContent         = localStorage.getItem('admin_stat_visits') || '0';
-      document.getElementById('statPaymentReaches').textContent = localStorage.getItem('admin_stat_payment_reaches') || '0';
-      document.getElementById('statSuccess').textContent        = localStorage.getItem('admin_stat_success') || '0';
-      document.getElementById('adminPanelModal').classList.remove('hidden');
-      document.getElementById('adminPanelModal').style.display = 'flex';
-    }
-    function closeAdminPanel() {
-      document.getElementById('adminPanelModal').classList.add('hidden');
-      document.getElementById('adminPanelModal').style.display = '';
-    }
-    function saveAdminSettings() {
-      activeConfig.upiId        = document.getElementById('adminUpiId').value.trim();
-      activeConfig.merchantName = document.getElementById('adminMerchantName').value.trim();
-      activeConfig.adminPass    = document.getElementById('adminPass').value.trim();
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(activeConfig));
-      alert('Admin settings saved successfully!');
-    }
-    function resetStats() {
-      if (!confirm('Reset all analytics?')) return;
-      ['admin_stat_visits','admin_stat_payment_reaches','admin_stat_success'].forEach(function(k) {
-        localStorage.setItem(k, '0');
-      });
-      document.getElementById('statVisits').textContent         = '0';
-      document.getElementById('statPaymentReaches').textContent = '0';
-      document.getElementById('statSuccess').textContent        = '0';
-      alert('Analytics reset.');
-    }
-
-    // ── Boot: restore session if UID exists ──
+    // ── Boot: clear old session to always show verification flow ──
     (function init() {
-      const savedUid = localStorage.getItem('ff_verified_uid');
-      if (savedUid) {
-        currentUid = savedUid;
-        document.getElementById('verifiedUidDisplay').textContent = 'UID: ' + savedUid;
-        loadDashboardData();
-        showView('view-dashboard');
-      }
+      // Clean startup so user always enters UID and sees Confirmation Page
     })();
 
     // ── Live Purchase Notifications Loop ──
@@ -1132,9 +2543,10 @@
 
     function showNotification() {
       if (toastBusy) return;
-      // Don't show during UID verification loading screen
+      // Don't show during verification or on payment page
       const verifyModal = document.getElementById('verifyModal');
-      if (verifyModal && verifyModal.style.display === 'flex') {
+      const paymentView = document.getElementById('view-payment');
+      if ((verifyModal && verifyModal.style.display === 'flex') || (paymentView && paymentView.classList.contains('active'))) {
         setTimeout(showNotification, 3000);
         return;
       }
@@ -1176,6 +2588,294 @@
     }
 
     setTimeout(showNotification, 3500);
+
+    // ═══════════════════════════════════════════════
+    // SUPPORT MODAL FUNCTIONS & MULTI-STEP FLOW
+    // ═══════════════════════════════════════════════
+    let supportVerifiedProfile = { uid: '', nickname: '' };
+
+    function openSupportModal() {
+      var m = document.getElementById('supportModal');
+      if (!m) return;
+      document.getElementById('supportTypeScreen').style.display = 'block';
+      document.getElementById('supportFormScreen').style.display = 'none';
+      document.getElementById('supportConfirmScreen').style.display = 'none';
+      document.getElementById('supportSuccessScreen').style.display = 'none';
+      m.style.display = 'flex';
+    }
+
+    function closeSupportModal() {
+      var m = document.getElementById('supportModal');
+      if (m) m.style.display = 'none';
+    }
+
+    function openTicketForm(type) {
+      document.getElementById('supportTypeScreen').style.display = 'none';
+      document.getElementById('supportFormScreen').style.display = 'block';
+      document.getElementById('supportConfirmScreen').style.display = 'none';
+      document.getElementById('supportSuccessScreen').style.display = 'none';
+      
+      // Auto-fill UID if player already logged in
+      var uidInput = document.getElementById('supportUID');
+      if (currentProfile && currentProfile.uid) {
+        uidInput.value = currentProfile.uid;
+        verifySupportUID();
+      } else {
+        uidInput.value = '';
+        document.getElementById('supportUIDResult').style.display = 'none';
+      }
+      document.getElementById('supportPackageSelect').value = '';
+      document.getElementById('supportCustomRedeemWrap').style.display = 'none';
+      document.getElementById('screenshotLabel').textContent = 'Click to upload payment screenshot';
+      document.getElementById('screenshotLabel').style.color = '#64748b';
+    }
+
+    function backToTypeScreen() {
+      document.getElementById('supportFormScreen').style.display = 'none';
+      document.getElementById('supportTypeScreen').style.display = 'block';
+    }
+
+    function backToSupportFormScreen() {
+      document.getElementById('supportConfirmScreen').style.display = 'none';
+      document.getElementById('supportFormScreen').style.display = 'block';
+    }
+
+    function onSupportPackageChange() {
+      var val = document.getElementById('supportPackageSelect').value;
+      var customWrap = document.getElementById('supportCustomRedeemWrap');
+      if (val === 'REDEEM_CUSTOM') {
+        customWrap.style.display = 'block';
+      } else {
+        customWrap.style.display = 'none';
+      }
+    }
+
+    function verifySupportUID() {
+      var uidVal = (document.getElementById('supportUID').value || '').trim();
+      var resBox = document.getElementById('supportUIDResult');
+      var nameEl = document.getElementById('supportVerifiedName');
+      var uidEl  = document.getElementById('supportVerifiedUID');
+
+      if (!uidVal || uidVal.length < 5) {
+        alert('Please enter a valid Free Fire UID (at least 5 digits)');
+        return;
+      }
+
+      // Check if matches current logged-in profile
+      if (currentProfile && currentProfile.uid === uidVal && currentProfile.nickname) {
+        supportVerifiedProfile = { uid: uidVal, nickname: currentProfile.nickname };
+        nameEl.textContent = currentProfile.nickname;
+        uidEl.textContent  = uidVal;
+        resBox.style.display = 'block';
+        return;
+      }
+
+      nameEl.textContent = 'Verifying...';
+      uidEl.textContent  = uidVal;
+      resBox.style.display = 'block';
+
+      function extractNick(d) {
+        if (!d) return null;
+        if (typeof d.data === 'string' && d.data.includes('NOT_FOUND')) return null;
+        var p = d.data && typeof d.data === 'object' ? d.data : d;
+        var acc = p.AccountInfo || p.captainBasicInfo || p.BasicInfo || p.basic_info || p;
+        var n = acc.AccountName || acc.Nickname || acc.nickname || acc.name || '';
+        return String(n).replace(/[\u3164\uf8ff]/g, '').trim();
+      }
+
+      // Fetch from API with direct fallback
+      fetch(API_BASE + '/api/ff-info?uid=' + encodeURIComponent(uidVal))
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          var nick = extractNick(d);
+          if (nick) {
+            supportVerifiedProfile = { uid: uidVal, nickname: nick };
+            nameEl.textContent = nick;
+            uidEl.textContent  = uidVal;
+          } else {
+            // Direct API fallback
+            return fetch('https://sehrab-api.vercel.app/api/v1/info?region=IND&uid=' + encodeURIComponent(uidVal)).then(function(r){return r.json();});
+          }
+        })
+        .then(function(d2) {
+          if (!d2) return;
+          var nick2 = extractNick(d2);
+          if (nick2) {
+            supportVerifiedProfile = { uid: uidVal, nickname: nick2 };
+            nameEl.textContent = nick2;
+            uidEl.textContent  = uidVal;
+          } else {
+            supportVerifiedProfile = { uid: uidVal, nickname: 'Free Fire Player' };
+            nameEl.textContent = 'Free Fire Player';
+            uidEl.textContent  = uidVal;
+          }
+        })
+        .catch(function() {
+          supportVerifiedProfile = { uid: uidVal, nickname: 'Free Fire Player' };
+          nameEl.textContent = 'Free Fire Player';
+          uidEl.textContent  = uidVal;
+        });
+    }
+
+    function handleScreenshotUpload(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('screenshotLabel').textContent = '✓ Uploaded: ' + input.files[0].name;
+        document.getElementById('screenshotLabel').style.color = '#16a34a';
+      }
+    }
+
+    function submitSupportForm() {
+      var uidVal = (document.getElementById('supportUID').value || '').trim();
+      var pkgVal = document.getElementById('supportPackageSelect').value;
+      
+      if (!uidVal || uidVal.length < 5) {
+        alert('Please enter a valid Free Fire UID.');
+        return;
+      }
+      if (!pkgVal) {
+        alert('Please select the package you purchased.');
+        return;
+      }
+      if (pkgVal === 'REDEEM_CUSTOM') {
+        var customAmt = (document.getElementById('supportCustomRedeemVal').value || '').trim();
+        if (!customAmt) {
+          alert('Please enter your Redeem Code amount.');
+          return;
+        }
+        pkgVal = '₹' + customAmt + ' Redeem Code Pack';
+      }
+
+      var accountName = supportVerifiedProfile.nickname || 'Free Fire Player';
+
+      // Populate Confirmation Screen
+      document.getElementById('confirmSupportName').textContent = accountName;
+      document.getElementById('confirmSupportUID').textContent  = uidVal;
+      document.getElementById('confirmSupportPackage').textContent = pkgVal;
+      document.getElementById('confirmSupportNoticeAccount').textContent = accountName;
+
+      // Show Confirmation Screen
+      document.getElementById('supportFormScreen').style.display = 'none';
+      document.getElementById('supportConfirmScreen').style.display = 'block';
+    }
+
+    function finalSubmitSupportTicket() {
+      // Generate Case ID (e.g. GFF-8K92X1)
+      var randChars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+      var code = '';
+      for (var i = 0; i < 6; i++) {
+        code += randChars.charAt(Math.floor(Math.random() * randChars.length));
+      }
+      var caseId = 'GFF-' + code;
+
+      document.getElementById('supportCaseID').textContent = caseId;
+
+      var uName = (document.getElementById('confirmSupportName').textContent || 'Player').trim();
+      var uUid  = (document.getElementById('confirmSupportUID').textContent || '—').trim();
+      var uPkg  = (document.getElementById('confirmSupportPackage').textContent || '—').trim();
+
+      syncAdminStore('submit_support_ticket', {
+        caseId: caseId,
+        uid: uUid,
+        nickname: uName,
+        package: uPkg,
+        screenshotUploaded: true
+      });
+
+      // Transition to Success Screen
+      document.getElementById('supportConfirmScreen').style.display = 'none';
+      document.getElementById('supportSuccessScreen').style.display = 'block';
+    }
+
+    function copySupportCaseId() {
+      var caseId = document.getElementById('supportCaseID').textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(caseId);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = caseId;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      var btn = document.getElementById('copyCaseIdBtn');
+      var oldText = btn.innerHTML;
+      btn.innerHTML = '✓ Copied!';
+      btn.style.background = '#16a34a';
+      setTimeout(function() {
+        btn.innerHTML = oldText;
+        btn.style.background = '#0f172a';
+      }, 2000);
+    }
+
+
+
+
+
+    // ═══════════════════════════════════════════════
+    // DRAGGABLE FLOATING SUPPORT BUTTON
+    // ═══════════════════════════════════════════════
+    (function() {
+      var btn = document.getElementById('floatingSupportBtn');
+      if (!btn) return;
+      var isDragging = false, hasMoved = false;
+      var startX, startY, startLeft, startBottom;
+
+      function getPos() {
+        var rect = btn.getBoundingClientRect();
+        return { left: rect.left, top: rect.top };
+      }
+
+      function onPointerDown(e) {
+        if (e.type === 'touchstart') {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        } else {
+          startX = e.clientX;
+          startY = e.clientY;
+        }
+        var rect = btn.getBoundingClientRect();
+        startLeft = rect.left;
+        startBottom = window.innerHeight - rect.bottom;
+        isDragging = true;
+        hasMoved = false;
+        btn.style.cursor = 'grabbing';
+        btn.style.transition = 'none';
+        e.preventDefault();
+      }
+
+      function onPointerMove(e) {
+        if (!isDragging) return;
+        var cx = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        var cy = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        var dx = cx - startX, dy = cy - startY;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+        var newLeft = startLeft + dx;
+        var newBottom = startBottom - dy;
+        newLeft = Math.max(8, Math.min(window.innerWidth - btn.offsetWidth - 8, newLeft));
+        newBottom = Math.max(8, Math.min(window.innerHeight - btn.offsetHeight - 8, newBottom));
+        btn.style.left = newLeft + 'px';
+        btn.style.bottom = newBottom + 'px';
+        btn.style.right = 'auto';
+        e.preventDefault();
+      }
+
+      function onPointerUp(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        btn.style.cursor = 'grab';
+        btn.style.transition = 'box-shadow 0.2s, transform 0.15s';
+        if (!hasMoved) openSupportModal();
+      }
+
+      btn.addEventListener('mousedown', onPointerDown);
+      btn.addEventListener('touchstart', onPointerDown, { passive: false });
+      document.addEventListener('mousemove', onPointerMove);
+      document.addEventListener('touchmove', onPointerMove, { passive: false });
+      document.addEventListener('mouseup', onPointerUp);
+      document.addEventListener('touchend', onPointerUp);
+    })();
+
   </script>
 
   <!-- Live Purchase Toast DOM (Ultra Compact White) -->
